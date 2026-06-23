@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('archive')}"></th:block></span><span>归档</span></h1>
+  </div>
+
+  <div th:each="archive : ${archives.items}" class="moe-card moe-archive">
+    <div class="moe-archive-year" th:text="${archive.year}">2026</div>
+    <div class="moe-timeline moe-archive-tl">
+      <th:block th:each="month : ${archive.months}">
+        <div class="moe-tl-item" th:each="post, it : ${month.posts}"
+             th:classappend="${'moe-arc-c' + (it.index % 5)}">
+          <span class="moe-tl-dot"></span>
+          <div class="moe-tl-date" th:if="${post.spec.publishTime != null}"
+               th:text="${#temporals.format(post.spec.publishTime, 'MM-dd', 'Asia/Shanghai')}">00-00</div>
+          <a class="moe-tl-box moe-archive-link" th:href="${post.status.permalink}" th:text="${post.spec.title}">标题</a>
+        </div>
+      </th:block>
+    </div>
+  </div>
+
+  <p th:if="${#lists.isEmpty(archives.items)}" class="moe-empty">还没有文章可归档 (｡･ω･｡)</p>
+  <div th:replace="~{modules/pagination :: pagination(${archives})}"></div>
+</th:block>
+</body>
+</html>

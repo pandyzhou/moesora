@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title">
+      <span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('tag')}"></th:block></span>
+      <span>全部标签</span>
+    </h1>
+  </div>
+  <div class="moe-card">
+    <div class="moe-tag-cloud">
+      <a th:each="tag : ${tags}" class="moe-chip"
+         th:href="${tag.status.permalink}"
+         th:style="${tag.spec.color != null and tag.spec.color != '#ffffff'} ? 'color:' + ${tag.spec.color} + ';border-color:' + ${tag.spec.color} : ''"
+         th:text="'# ' + ${tag.spec.displayName}">标签</a>
+      <p th:if="${#lists.isEmpty(tags)}" class="moe-empty">还没有标签</p>
+    </div>
+  </div>
+</th:block>
+</body>
+</html>

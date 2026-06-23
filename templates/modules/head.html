@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="theme-color" th:content="${theme.config.basic?.theme_color} ?: '#f9a8d4'"/>
+  <link rel="preconnect" th:href="${theme.config.custom?.cdn_base} ?: 'https://gcore.jsdelivr.net'" crossorigin="anonymous"/>
+  <link rel="dns-prefetch" th:href="${theme.config.custom?.cdn_base} ?: 'https://gcore.jsdelivr.net'"/>
+  <!-- SEO：动态标题 + 描述 + OG/Twitter + canonical + RSS + JSON-LD（见 modules/seo.html） -->
+  <th:block th:replace="~{modules/seo :: seo}"></th:block>
+
+  <!-- 编译后的样式（Vite + PostCSS 产物） -->
+  <link rel="stylesheet" th:href="@{/assets/dist/moesora.css(v=${theme.spec.version})}"/>
+
+  <!-- 主题色（来自后台设置；用 th:utext 直接构造 CSS，不依赖 inline 模式；置于主样式后以覆盖默认值） -->
+  <style th:utext="${':root{--moe-theme:' + (theme.config.basic?.theme_color ?: '#f9a8d4') + ';--moe-ol-hover:' + (theme.config.post?.ol_hover_color ?: '#ff7eb3') + ';}html.dark{--moe-theme:' + (theme.config.basic?.night_theme_color ?: '#f0a5cb') + ';}'}"></style>
+
+  <!-- 灰色哀悼模式 -->
+  <style th:if="${theme.config.effects?.gray_mode}">html{filter:grayscale(100%)}</style>
+
+  <!-- 自定义：外部 CSS -->
+  <link th:each="c : ${theme.config.custom?.external_css}" th:if="${!#strings.isEmpty(c?.url)}"
+        rel="stylesheet" th:href="${c.url}"/>
+  <!-- 自定义：内嵌 CSS -->
+  <style th:if="${!#strings.isEmpty(theme.config.custom?.inline_css)}"
+         th:utext="${theme.config.custom.inline_css}"></style>
+  <!-- 自定义：外部 JS（head） -->
+  <script th:each="j : ${theme.config.custom?.external_js_head}" th:if="${!#strings.isEmpty(j?.url)}"
+          th:src="${j.url}"></script>
+  <!-- 自定义：内嵌 JS（head） -->
+  <script th:if="${!#strings.isEmpty(theme.config.custom?.inline_js_head)}"
+          th:utext="${theme.config.custom.inline_js_head}"></script>
+
+  <!-- 百度链接自动推送（加快收录；仅百度支持此 JS 方式） -->
+  <script th:if="${theme.config.custom?.baidu_push}">
+    (function(){
+      var bp = document.createElement('script');
+      var c = window.location.protocol.split(':')[0];
+      bp.src = (c === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+  <!-- 把主题设置注入前端，供脚本读取 -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    window.MoesoraConfig = {
+      hiddenTitle: /*[[${theme.config.basic?.document_hidden_title}]]*/ "(つ_<)~ 你去哪儿了！",
+      visibleTitle: /*[[${theme.config.basic?.document_visible_title}]]*/ "(*´∇｀*) 欢迎回来！",
+      loadingText: /*[[${theme.config.loading?.loading_text}]]*/ "少女祈祷中...",
+      defaultTheme: /*[[${theme.config.basic?.default_theme}]]*/ "auto",
+      effectsBg: /*[[${theme.config.effects?.effects_bg}]]*/ "none",
+      effectsBgMode: /*[[${theme.config.effects?.effects_bg_mode}]]*/ "all",
+      effectsClick: /*[[${theme.config.effects?.effects_click}]]*/ "none",
+      effectsMove: /*[[${theme.config.effects?.effects_move}]]*/ "none",
+      cursorStyle: /*[[${theme.config.effects?.cursor_style}]]*/ "default",
+      pjax: /*[[${theme.config.effects?.enable_pjax} ?: false]]*/ false,
+      codeFoldLine: /*[[${theme.config.post?.code_fold_line} ?: 0]]*/ 0,
+      imgFoldHeight: /*[[${theme.config.post?.img_fold_height} ?: 0]]*/ 0,
+      enableLightbox: /*[[${theme.config.post?.enable_lightbox} ?: true]]*/ true,
+      headingAnim: /*[[${theme.config.post?.heading_anim} ?: true]]*/ true,
+      defaultCodeLang: /*[[${theme.config.post?.default_code_lang}]]*/ "",
+      commentUpload: {
+        url: /*[[${theme.config.comment?.comment_upload_url}]]*/ "",
+        field: /*[[${theme.config.comment?.comment_upload_field} ?: 'file']]*/ "file",
+        resp: /*[[${theme.config.comment?.comment_upload_resp} ?: 'data.url']]*/ "data.url",
+        header: /*[[${theme.config.comment?.comment_upload_header}]]*/ ""
+      },
+      siteName: /*[[${site.title}]]*/ "Moesora",
+      extRedirect: {
+        on: /*[[${theme.config.post?.external_redirect} ?: false]]*/ false,
+        delay: /*[[${theme.config.post?.external_redirect_delay} ?: 9]]*/ 9,
+        whitelist: /*[[${theme.config.post?.external_redirect_whitelist}]]*/ ""
+      },
+      cdnBase: /*[[${theme.config.custom?.cdn_base} ?: 'https://gcore.jsdelivr.net']]*/ "https://gcore.jsdelivr.net",
+      live2d: {
+        on: /*[[${theme.config.live2d?.live2d_enable} ?: false]]*/ false,
+        position: /*[[${theme.config.live2d?.live2d_position} ?: 'bottom-right']]*/ "bottom-right",
+        scale: /*[[${theme.config.live2d?.live2d_scale} ?: 1]]*/ 1,
+        models: /*[[${theme.config.live2d?.live2d_models}]]*/ ""
+      }
+    };
+    /*]]>*/
+  </script>
+
+  <!-- 顶部加载进度条（首屏加载时显示） -->
+  <script th:if="${theme.config.loading?.load_progress}">
+    (function () {
+      var tc = (getComputedStyle(document.documentElement).getPropertyValue("--moe-theme") || "#f9a8d4").trim() || "#f9a8d4";
+      var bar = document.createElement("div");
+      bar.style.cssText = "position:fixed;top:0;left:0;height:3px;width:0;z-index:3000;border-radius:0 2px 2px 0;" +
+        "background:linear-gradient(90deg," + tc + ",#c8a8ff);box-shadow:0 0 8px " + tc + ";" +
+        "transition:width .3s ease,opacity .4s ease";
+      (document.body || document.documentElement).appendChild(bar);
+      var w = 0, done = false;
+      requestAnimationFrame(function () { bar.style.width = "28%"; });
+      var t = setInterval(function () { if (done) return; w = Math.min(90, w + Math.random() * 12); bar.style.width = w + "%"; }, 300);
+      function finish() {
+        if (done) return; done = true; clearInterval(t);
+        bar.style.width = "100%";
+        setTimeout(function () { bar.style.opacity = "0"; setTimeout(function () { if (bar.parentNode) bar.remove(); }, 450); }, 200);
+      }
+      if (document.readyState === "complete") finish();
+      else window.addEventListener("load", finish);
+      setTimeout(finish, 8000);
+    })();
+  </script>
+  <script>
+    (function () {
+      var cfg = window.MoesoraConfig || {};
+      var saved = null;
+      try { saved = localStorage.getItem("moesora-theme"); } catch (e) {}
+      var def = cfg.defaultTheme || "auto";
+      var dark;
+      if (saved === "dark") dark = true;
+      else if (saved === "light") dark = false;
+      else if (def === "dark") dark = true;
+      else if (def === "light") dark = false;
+      else dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (dark) document.documentElement.classList.add("dark");
+      if (cfg.headingAnim === false) document.documentElement.classList.add("moe-no-anim");
+    })();
+  </script>
+</head>
+</html>

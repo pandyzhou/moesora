@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<!--/* Moesora SEO 片段：按页面类型输出标题/描述/OG/Twitter/canonical/RSS/JSON-LD。
+       绝对链接依赖「SEO 优化 → 站点完整网址」设置；留空则退化为相对链接。 */-->
+<th:block th:fragment="seo"
+  th:with="
+    _sc=${theme.config.seo},
+    _baseRaw=${_sc?.seo_base_url} ?: '',
+    _baseUrl=${#strings.endsWith(_baseRaw, '/') ? _baseRaw.substring(0, _baseRaw.length() - 1) : _baseRaw},
+    _isPost=${post != null},
+    _isPage=${singlePage != null},
+    _isCat=${category != null},
+    _isTag=${tag != null},
+    _title=${_isPost ? post.spec.title + ' - ' + site.title : (_isPage ? singlePage.spec.title + ' - ' + site.title : (_isCat ? category.spec.displayName + ' - ' + site.title : (_isTag ? tag.spec.displayName + ' - ' + site.title : site.title)))},
+    _descRaw=${_isPost ? post.status.excerpt : (_isPage ? singlePage.status.excerpt : (_isCat ? category.spec.description : ''))},
+    _desc=${_descRaw != null and _descRaw != '' ? _descRaw : ((_sc?.seo_description != null and _sc.seo_description != '') ? _sc.seo_description : site.subtitle)},
+    _path=${_isPost ? post.status.permalink : (_isPage ? singlePage.status.permalink : (_isCat ? category.status.permalink : (_isTag ? tag.status.permalink : '/')))},
+    _url=${_baseUrl != '' ? _baseUrl + _path : _path},
+    _coverRaw=${(_isPost and post.spec.cover != null and post.spec.cover != '') ? post.spec.cover : ((_sc?.seo_share_image != null and _sc.seo_share_image != '') ? _sc.seo_share_image : site.logo)},
+    _img=${_coverRaw == null or _coverRaw == '' ? '' : (#strings.startsWith(_coverRaw, 'http') ? _coverRaw : (_baseUrl != '' ? _baseUrl + _coverRaw : _coverRaw))},
+    _type=${(_isPost or _isPage) ? 'article' : 'website'},
+    _enable=${(_sc?.seo_enable) ?: true},
+    _rss=${(_sc?.seo_rss_url != null and _sc.seo_rss_url != '') ? _sc.seo_rss_url : '/rss.xml'}">
+
+  <title th:text="${_title} ?: 'Moesora'">Moesora</title>
+
+  <th:block th:if="${_enable}"
+    th:with="
+      _kw=${(_isPost and post.tags != null and !post.tags.isEmpty()) ? #strings.listJoin(post.tags.![spec.displayName], ',') : (_sc?.seo_keywords ?: '')},
+      _pubISO=${(_isPost and post.spec.publishTime != null) ? #temporals.format(post.spec.publishTime, 'yyyy-MM-dd''T''HH:mm:ss', 'Asia/Shanghai') + '+08:00' : ''},
+      _titleJ=${#strings.replace(_title, '&quot;', '')}">
+
+    <meta name="description" th:if="${_desc != null and _desc != ''}" th:content="${_desc}"/>
+    <meta name="keywords" th:if="${_kw != null and _kw != ''}" th:content="${_kw}"/>
+    <link rel="canonical" th:href="${_url}"/>
+
+    <meta property="og:site_name" th:content="${site.title}"/>
+    <meta property="og:type" th:content="${_type}"/>
+    <meta property="og:title" th:content="${_title}"/>
+    <meta property="og:description" th:if="${_desc != null and _desc != ''}" th:content="${_desc}"/>
+    <meta property="og:url" th:content="${_url}"/>
+    <meta property="og:image" th:if="${_img != null and _img != ''}" th:content="${_img}"/>
+    <meta property="article:published_time" th:if="${_pubISO != ''}" th:content="${_pubISO}"/>
+
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" th:content="${_title}"/>
+    <meta name="twitter:description" th:if="${_desc != null and _desc != ''}" th:content="${_desc}"/>
+    <meta name="twitter:image" th:if="${_img != null and _img != ''}" th:content="${_img}"/>
+
+    <link rel="alternate" type="application/rss+xml" th:title="${site.title}" th:href="${_rss}"/>
+
+    <script type="application/ld+json" th:if="${_isPost and _pubISO != ''}" th:utext="${'{&quot;@context&quot;:&quot;https://schema.org&quot;,&quot;@type&quot;:&quot;Article&quot;,&quot;headline&quot;:&quot;' + _titleJ + '&quot;,&quot;datePublished&quot;:&quot;' + _pubISO + '&quot;,&quot;mainEntityOfPage&quot;:&quot;' + _url + '&quot;,&quot;publisher&quot;:{&quot;@type&quot;:&quot;Organization&quot;,&quot;name&quot;:&quot;' + site.title + '&quot;}' + (_img != '' ? (',&quot;image&quot;:&quot;' + _img + '&quot;') : '') + '}'}">{}</script>
+  </th:block>
+</th:block>
+</head>
+</html>

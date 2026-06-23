@@ -1,0 +1,28 @@
+apiVersion: theme.halo.run/v1alpha1
+kind: Theme
+metadata:
+  # 必须与主题文件夹名一致，且与安装后 /themes/<name>/ 路径一致
+  name: moesora
+spec:
+  displayName: Moesora
+  author:
+    name: Hoshi
+    website: "https://www.moesora.cn/"
+  description: As lovely as sora！
+  logo: "/themes/moesora/assets/dist/logo.svg"
+  homepage: "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora"
+  repo: "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora.git"
+  issues: "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora/issues"
+  version: "1.0.1"
+  requires: ">=2.14.0"
+  settingName: "moesora-settings"
+  configMapName: "moesora-configmap"
+  customTemplates:
+    page:
+      - name: "留言墙"
+        description: "访客可写的便签留言墙（基于评论系统，单页 slug 建议设为 wishes）"
+        screenshot: ""
+        file: page_wishes.html
+  license:
+    - name: "MIT"
+      url: "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora/blob/master/LICENSE"

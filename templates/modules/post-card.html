@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 公共文章卡片：首页 / 标签页 / 分类页 共用，保证列表样式一致 -->
+<article th:fragment="card(post)" class="moe-card moe-post"
+         th:with="cover=${(post.spec.cover != null and post.spec.cover != '') ? post.spec.cover
+                   : (#strings.isEmpty(theme.config.post?.default_thumbnail) ? null
+                      : (theme.config.post.default_thumbnail + (theme.config.post.default_thumbnail.contains('?') ? '&' : '?') + 'moe=' + post.metadata.name))}">
+  <a th:if="${!#strings.isEmpty(cover)}"
+     class="moe-post-cover" th:href="${post.status.permalink}">
+    <img th:src="${cover}" th:alt="${post.spec.title}" loading="lazy"/>
+  </a>
+  <div class="moe-post-body">
+    <h2 class="moe-post-title">
+      <a th:href="${post.status.permalink}" th:text="${post.spec.title}">文章标题</a>
+    </h2>
+    <p class="moe-post-excerpt" th:if="${post.status.excerpt}" th:text="${post.status.excerpt}"></p>
+    <div class="moe-post-meta">
+      <span class="moe-meta-item" th:if="${post.spec.publishTime != null}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd', 'Asia/Shanghai')}">日期</span>
+      </span>
+      <span class="moe-meta-item">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span th:text="${post.stats.visit}">0</span>
+      </span>
+      <span class="moe-meta-item">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>
+        <span th:text="${post.stats.comment}">0</span>
+      </span>
+      <span class="moe-meta-item">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span th:text="${post.stats.upvote}">0</span>
+      </span>
+      <span class="moe-meta-item moe-meta-heat"
+            th:with="heat=${24 + post.stats.visit*0.1 + post.stats.upvote*2 + post.stats.comment*3},
+                     heatColor=${heat &lt; 37 ? '#ffa87e' : (heat &lt; 120 ? '#fb734a' : '#e0081c')}"
+            th:style="'color:' + ${heatColor}"
+            th:text="${#numbers.formatDecimal(heat,0,1)} + '℃'">0℃</span>
+      <a class="moe-post-cat" th:each="cat : ${post.categories}"
+         th:href="${cat.status.permalink}" th:text="${cat.spec.displayName}">分类</a>
+    </div>
+  </div>
+</article>
+</body>
+</html>

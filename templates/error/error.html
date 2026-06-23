@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-card moe-error">
+    <div class="moe-error-face">(´；ω；｀)</div>
+    <div class="moe-error-code" th:if="${status != null}" th:text="${status}">404</div>
+    <h1 class="moe-error-title" th:text="${status == 404 ? '页面走丢了' : '出错了'}">出错了</h1>
+    <p class="moe-error-sub"
+       th:text="${status == 404 ? '你要找的页面似乎不在这里。' : '服务器开小差了，请稍后再试～'}">出错了。</p>
+    <a class="moe-error-home" th:href="@{/}">← 回到首页</a>
+  </div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('folder')}"></th:block></span><span>全部分类</span></h1>
+  </div>
+  <div class="moe-card">
+    <div class="moe-catpage">
+      <a th:each="category, it : ${categories}" class="moe-catpage-tile"
+         th:classappend="${'moe-catpage-c' + (it.index % 5)}"
+         th:href="${category.status.permalink}">
+        <span class="moe-catpage-name" th:text="${category.spec.displayName}">分类</span>
+        <span class="moe-catpage-count" th:if="${category.status?.postCount != null}"
+              th:text="${category.status.postCount}">0</span>
+      </a>
+    </div>
+    <p th:if="${#lists.isEmpty(categories)}" class="moe-empty">还没有分类</p>
+  </div>
+</th:block>
+</body>
+</html>

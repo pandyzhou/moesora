@@ -1,0 +1,38 @@
+{
+  "name": "moesora",
+  "version": "1.0.1",
+  "description": "As lovely as sora！",
+  "private": false,
+  "type": "module",
+  "author": {
+    "name": "Hoshi",
+    "url": "https://www.moesora.cn/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora.git"
+  },
+  "bugs": {
+    "url": "https://github.com/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/moesora/issues"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "zip": "node scripts/zip.mjs",
+    "package": "npm run build && npm run zip"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.0",
+    "autoprefixer": "^10.4.0",
+    "coffeescript": "^2.7.0",
+    "postcss": "^8.4.0",
+    "postcss-nested": "^6.2.0",
+    "postcss-preset-env": "^9.6.0",
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

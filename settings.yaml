@@ -1,0 +1,773 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  # 必须与 theme.yaml 的 spec.settingName 一致
+  name: moesora-settings
+spec:
+  forms:
+    - group: basic
+      label: 基础
+      formSchema:
+        - $formkit: text
+          name: document_hidden_title
+          label: 离开时标签页文字
+          value: "(つ_<)~ 你去哪儿了！"
+          help: 切换到别的标签页时，浏览器标题变成的文字
+
+        - $formkit: text
+          name: document_visible_title
+          label: 返回时标签页文字
+          value: "(*´∇｀*) 欢迎回来！"
+          help: 切回本页时恢复显示的欢迎文字
+
+        - $formkit: text
+          name: blog_name
+          label: 博客名称
+          help: 顶栏 / 首页大图 / 侧栏头像框未单独填写名称时，统一使用此名称；留空则使用站点设置里的标题
+          value: ""
+
+        - $formkit: text
+          name: name_navbar
+          label: 顶栏显示名称
+          help: 显示在左上角导航品牌处。留空则依次使用「博客名称」、站点标题
+          value: ""
+
+        - $formkit: text
+          name: name_hero
+          label: 首页大图显示名称
+          help: 显示在首页大图标题处。留空则使用站点设置里的标题
+          value: ""
+
+        - $formkit: text
+          name: name_profile
+          label: 侧栏头像框显示名称
+          help: 显示在侧栏头像卡处。留空则使用站点设置里的标题
+          value: ""
+
+        - $formkit: textarea
+          name: signature
+          label: 终端签名(打字机)
+          rows: 3
+          help: 显示在首页大图标题下方，终端打字机效果。每行一句，会循环逐句打出；留空则显示站点副标题
+          value: ""
+
+        - $formkit: attachment
+          name: hero_bg
+          label: 首页大图背景图
+          help: 设置后首页大图用此图作背景（替换默认渐变），文字自动加深底衬；留空则用樱花粉渐变
+          value: ""
+
+        - $formkit: text
+          name: hero_video
+          label: 首页大图背景视频
+          help: 填视频直链地址（mp4/webm 等，可用上传后的附件地址）。设置后首页大图改用视频作背景，自动静音循环播放；上方「背景图」会作为视频加载前的封面/兜底。留空则不用视频
+          value: ""
+
+        - $formkit: select
+          name: hero_enable
+          label: 首页大图-开关
+          value: true
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+
+        - $formkit: select
+          name: hero_mode
+          label: 首页大图-高度模式
+          value: "banner"
+          options:
+            - { label: "满宽横幅", value: "banner" }
+            - { label: "全屏(整屏高)", value: "fullscreen" }
+
+        - $formkit: text
+          name: site_bg
+          label: 全站背景图
+          help: 可填图片地址，或填返回图片的 API 地址（如随机二次元图 API）。留空则用纯色背景
+          value: ""
+
+        - $formkit: select
+          name: site_bg_mode
+          label: 全站背景图-显示范围
+          value: "all"
+          help: 选择「除首页外」时，首页不显示全站背景图（首页通常已有大图），其余页面正常显示
+          options:
+            - { label: "全部页面（含首页）", value: "all" }
+            - { label: "除首页外的所有页面", value: "not_home" }
+
+        - $formkit: color
+          name: theme_color
+          label: 主题色
+          value: "#f9a8d4"
+          help: 默认樱花粉
+
+        - $formkit: color
+          name: night_theme_color
+          label: 黑暗模式主题色
+          value: "#f0a5cb"
+
+        - $formkit: select
+          name: default_theme
+          label: 默认主题模式
+          value: "auto"
+          options:
+            - label: 明亮模式
+              value: "light"
+            - label: 黑暗模式
+              value: "dark"
+            - label: 跟随系统
+              value: "auto"
+
+        - $formkit: select
+          name: sidebar_column
+          label: 博客布局方式
+          value: "three"
+          options:
+            - label: 三列布局
+              value: "three"
+            - label: 仅左侧栏
+              value: "left"
+            - label: 仅右侧栏
+              value: "right"
+
+        - $formkit: select
+          name: sidebar_swap
+          label: 左右栏位置互换
+          value: false
+          help: 开启后，带头像的那一列移到右边、右侧栏移到左边（仅桌面三列布局生效）
+          options:
+            - label: 默认（头像在左）
+              value: false
+            - label: 互换（头像在右）
+              value: true
+
+    - group: loading
+      label: 加载
+      formSchema:
+        - $formkit: select
+          name: load_progress
+          label: 顶部加载进度条
+          value: false
+          help: 打开页面时顶部显示一条加载进度条
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: text
+          name: loading_text
+          label: 加载文案
+          value: "少女祈祷中..."
+          help: 页面加载时显示的文字
+
+    - group: post
+      label: 文章
+      formSchema:
+        - $formkit: select
+          name: code_pretty
+          label: 代码高亮主题
+          value: "atom-one-dark"
+          options:
+            - { label: "Atom One Dark（深）", value: "atom-one-dark" }
+            - { label: "Atom One Light（浅）", value: "atom-one-light" }
+            - { label: "GitHub（浅）", value: "github" }
+            - { label: "GitHub Dark（深）", value: "github-dark" }
+            - { label: "GitHub Dark Dimmed（深）", value: "github-dark-dimmed" }
+            - { label: "Monokai（深）", value: "monokai" }
+            - { label: "Monokai Sublime（深）", value: "monokai-sublime" }
+            - { label: "Dracula（深）", value: "base16/dracula" }
+            - { label: "Nord（深）", value: "nord" }
+            - { label: "Night Owl（深）", value: "night-owl" }
+            - { label: "Tokyo Night Dark（深）", value: "tokyo-night-dark" }
+            - { label: "Tokyo Night Light（浅）", value: "tokyo-night-light" }
+            - { label: "One Dark Pro / Obsidian（深）", value: "obsidian" }
+            - { label: "Shades of Purple（深）", value: "shades-of-purple" }
+            - { label: "Gradient Dark 渐变（深）", value: "gradient-dark" }
+            - { label: "VS 2015（深）", value: "vs2015" }
+            - { label: "Androidstudio（深）", value: "androidstudio" }
+            - { label: "Agate（深）", value: "agate" }
+            - { label: "StackOverflow Dark（深）", value: "stackoverflow-dark" }
+            - { label: "StackOverflow Light（浅）", value: "stackoverflow-light" }
+            - { label: "VS（浅）", value: "vs" }
+            - { label: "Xcode（浅）", value: "xcode" }
+            - { label: "Idea（浅）", value: "idea" }
+            - { label: "Solarized Dark（深）", value: "base16/solarized-dark" }
+            - { label: "Solarized Light（浅）", value: "base16/solarized-light" }
+            - { label: "Kimbie Dark（深）", value: "kimbie-dark" }
+            - { label: "Tomorrow Night Blue（深）", value: "tomorrow-night-blue" }
+        - $formkit: select
+          name: enable_katex
+          label: KaTeX 数学公式
+          value: false
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: select
+          name: enable_lightbox
+          label: 图片灯箱
+          value: true
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: select
+          name: enable_copyright
+          label: 文章版权声明
+          value: true
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: select
+          name: enable_reward
+          label: 文章打赏
+          value: false
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: attachment
+          name: reward_wechat
+          label: 打赏-微信收款码
+        - $formkit: attachment
+          name: reward_alipay
+          label: 打赏-支付宝收款码
+
+        - $formkit: select
+          name: enable_post_share
+          label: 文章分享按钮
+          value: false
+          help: 文章底部显示分享按钮（复制链接 / 微博 / QQ空间 / Telegram / X）
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: text
+          name: default_thumbnail
+          label: 默认文章封面图
+          help: "文章没有设置封面时用此图（可填图片地址或随机图 API）；留空则不显示封面"
+          value: ""
+        - $formkit: number
+          name: code_fold_line
+          label: 代码块折叠行数
+          help: "代码超过这么多行时自动折叠并显示展开按钮；填 0 关闭折叠"
+          value: 0
+        - $formkit: number
+          name: img_fold_height
+          label: 正文长图折叠高度(px)
+          help: "正文图片高度超过此值时折叠并显示展开按钮；填 0 关闭折叠"
+          value: 0
+        - $formkit: select
+          name: heading_anim
+          label: 文章标题动效
+          value: true
+          help: "开启后：标题悬停文字右弹+底部主题下划线变长、有序序号悬停转圈变色"
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: color
+          name: ol_hover_color
+          label: 有序序号悬停颜色
+          value: "#ff7eb3"
+          help: "正文有序列表 1.2.3. 悬停时的颜色"
+        - $formkit: text
+          name: default_code_lang
+          label: 默认代码语言
+          value: ""
+          help: "代码块没有标注语言时，按此语言高亮（如填 bash / python / js）；留空则自动识别（自动识别常出错，建议填写或在写作时用 ```bash 标注）"
+        - $formkit: textarea
+          name: copy_explain
+          label: 复制内容追加版权
+          help: "读者复制正文（超过20字）时，自动在末尾追加这段文字。可用 {url} 代表本文链接。留空则不追加"
+          value: ""
+        - $formkit: select
+          name: external_redirect
+          label: 站外链接跳转确认
+          value: false
+          help: "开启后，点击文章/动态正文里的站外链接会先弹出确认页，倒计时结束才能跳转，防止误点和钓鱼"
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: number
+          name: external_redirect_delay
+          label: 跳转倒计时（秒）
+          value: 9
+          help: "确认页需等待的秒数，默认 9 秒"
+        - $formkit: textarea
+          name: external_redirect_whitelist
+          label: 跳转白名单域名
+          value: ""
+          help: "这些域名的站外链接不弹确认页、直接跳转。一行一个或用逗号分隔，如 github.com,bilibili.com（子域名自动匹配）"
+
+    - group: sidebar
+      label: 侧边栏
+      formSchema:
+        - $formkit: repeater
+          name: left_modules
+          label: 左栏模块（拖动排序，删除某项即隐藏）
+          help: 控制左栏显示哪些模块、以及从上到下的顺序
+          value:
+            - { module: "toc" }
+            - { module: "profile" }
+            - { module: "recent" }
+            - { module: "tags" }
+          children:
+            - $formkit: select
+              name: module
+              label: 模块
+              options:
+                - { label: "文章目录(仅文章页显示)", value: "toc" }
+                - { label: "个人信息卡", value: "profile" }
+                - { label: "公告", value: "notice" }
+                - { label: "恋爱墙", value: "love" }
+                - { label: "音乐播放器", value: "music" }
+                - { label: "关于", value: "about" }
+                - { label: "友链", value: "links" }
+                - { label: "最近文章", value: "recent" }
+                - { label: "分类", value: "categories" }
+                - { label: "标签云", value: "tags" }
+                - { label: "时间天气", value: "weather" }
+        - $formkit: repeater
+          name: right_modules
+          label: 右栏模块（拖动排序，删除某项即隐藏）
+          help: 控制右栏显示哪些模块、以及从上到下的顺序
+          value:
+            - { module: "notice" }
+            - { module: "love" }
+            - { module: "music" }
+            - { module: "about" }
+            - { module: "links" }
+          children:
+            - $formkit: select
+              name: module
+              label: 模块
+              options:
+                - { label: "文章目录(仅文章页显示)", value: "toc" }
+                - { label: "个人信息卡", value: "profile" }
+                - { label: "公告", value: "notice" }
+                - { label: "恋爱墙", value: "love" }
+                - { label: "音乐播放器", value: "music" }
+                - { label: "关于", value: "about" }
+                - { label: "友链", value: "links" }
+                - { label: "最近文章", value: "recent" }
+                - { label: "分类", value: "categories" }
+                - { label: "标签云", value: "tags" }
+                - { label: "时间天气", value: "weather" }
+        - $formkit: textarea
+          name: notice_content
+          label: 公告-内容
+          help: 留空则用默认文案；支持 HTML
+          value: ""
+        - $formkit: textarea
+          name: about_content
+          label: 关于-内容
+          help: 留空则用默认文案；支持 HTML
+          value: ""
+        - $formkit: text
+          name: weather_city
+          label: 时间天气-城市
+          help: 「时间天气」组件显示的城市，如 芜湖、上海、北京。留空则按访客 IP 自动定位当前城市。需先在上方左/右栏模块里添加「时间天气」
+          value: ""
+        - $formkit: number
+          name: recent_posts_count
+          label: 最近文章-显示数量
+          value: 5
+        - $formkit: text
+          name: profile_signature
+          label: 头像卡-个人签名
+          help: 显示在头像卡名称下方；留空则用站点副标题
+          value: ""
+        - $formkit: text
+          name: profile_location
+          label: 头像卡-位置信息
+          help: 显示在名称与统计之间，如 中国·上海；留空不显示
+          value: ""
+        - $formkit: select
+          name: love_enable
+          label: 恋爱墙-开启
+          value: false
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: attachment
+          name: love_oneself_avatar
+          label: 恋爱墙-自己头像
+        - $formkit: text
+          name: love_oneself_url
+          label: 恋爱墙-自己主页
+        - $formkit: attachment
+          name: love_opposite_avatar
+          label: 恋爱墙-对方头像
+        - $formkit: text
+          name: love_opposite_url
+          label: 恋爱墙-对方主页
+        - $formkit: text
+          name: love_time
+          label: 恋爱墙-恋爱开始时间
+          help: "格式：2020-01-01，用于计算在一起时长"
+        - $formkit: select
+          name: music_enable
+          label: 音乐播放器-开启
+          value: false
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: text
+          name: netease_playlist_id
+          label: 音乐-网易云歌单 ID
+          help: "歌单链接里 playlist?id= 后面的数字"
+        - $formkit: select
+          name: music_float
+          label: 音乐播放器-显示方式
+          value: false
+          help: "悬浮模式下播放器固定在屏幕左下角，且开启 Pjax 后切页不会中断播放；侧栏模式则作为侧栏卡片显示"
+          options:
+            - { label: "右下/左下角悬浮（切页不断歌）", value: true }
+            - { label: "侧栏卡片", value: false }
+
+        - $formkit: repeater
+          name: social_links
+          label: 社交渠道
+          help: "显示在头像模块统计下方，悬停高亮"
+          value: []
+          children:
+            - $formkit: select
+              name: platform
+              label: 平台
+              value: "link"
+              options:
+                - { label: "GitHub", value: "github" }
+                - { label: "邮箱 Email", value: "email" }
+                - { label: "RSS 订阅", value: "rss" }
+                - { label: "Twitter / X", value: "twitter" }
+                - { label: "Facebook", value: "facebook" }
+                - { label: "Telegram", value: "telegram" }
+                - { label: "哔哩哔哩", value: "bilibili" }
+                - { label: "YouTube", value: "youtube" }
+                - { label: "Instagram", value: "instagram" }
+                - { label: "QQ", value: "qq" }
+                - { label: "微博", value: "weibo" }
+                - { label: "其它链接", value: "link" }
+            - $formkit: text
+              name: name
+              label: 名称(悬停提示)
+              value: ""
+            - $formkit: text
+              name: url
+              label: 链接地址
+              value: ""
+
+    - group: effects
+      label: 特效
+      formSchema:
+        - $formkit: select
+          name: effects_bg
+          label: 背景特效
+          value: "none"
+          options:
+            - { label: "无", value: "none" }
+            - { label: "樱花飘落", value: "sakura" }
+            - { label: "雪花飘落", value: "snow" }
+            - { label: "宇宙星空", value: "universe" }
+        - $formkit: select
+          name: effects_bg_mode
+          label: 背景特效-显示时机
+          value: "all"
+          options:
+            - { label: "全模式", value: "all" }
+            - { label: "仅明亮模式", value: "light" }
+            - { label: "仅黑暗模式", value: "dark" }
+        - $formkit: select
+          name: effects_click
+          label: 鼠标点击特效
+          value: "none"
+          options:
+            - { label: "无", value: "none" }
+            - { label: "爱心", value: "heart" }
+            - { label: "烟花", value: "firework" }
+        - $formkit: select
+          name: effects_move
+          label: 鼠标移动拖尾
+          value: "none"
+          options:
+            - { label: "无", value: "none" }
+            - { label: "光点拖尾", value: "dot" }
+            - { label: "樱花拖尾", value: "sakura" }
+            - { label: "雪花拖尾", value: "snow" }
+        - $formkit: select
+          name: cursor_style
+          label: 鼠标光标样式
+          value: "default"
+          help: "内置「Pink-Paper」「Sakura」两款光标，开箱即用"
+          options:
+            - { label: "默认", value: "default" }
+            - { label: "Pink-Paper", value: "Pink-Paper" }
+            - { label: "Sakura", value: "Sakura" }
+        - $formkit: select
+          name: gray_mode
+          label: 灰色哀悼模式
+          value: false
+          help: 开启后整站置灰（用于哀悼日）
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+
+        - $formkit: select
+          name: enable_pjax
+          label: Pjax 无刷新加载
+          value: false
+          help: 开启后站内跳转不整页刷新（更快、切页更顺滑）。如遇个别页面异常可关闭回退为传统跳转
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+
+    - group: footer
+      label: 页脚
+      formSchema:
+        - $formkit: text
+          name: since
+          label: 建站时间
+          help: "格式 2024-01-01，页脚实时显示「已建站 X天X时X分X秒」；留空不显示"
+        - $formkit: text
+          name: icp
+          label: ICP 备案号
+          help: "如 京ICP备12345678号，留空不显示；点击跳转工信部备案查询"
+        - $formkit: text
+          name: police_text
+          label: 公安备案-显示文字
+          help: "如 京公网安备11010802012345号，留空不显示"
+        - $formkit: text
+          name: police_code
+          label: 公安备案-编号(纯数字)
+          help: "公安备案号里的纯数字部分，用于生成查询跳转链接"
+        - $formkit: text
+          name: powered_name
+          label: 页脚 Powered by 文字
+          value: "Halo"
+          help: '页脚 "Powered by" 后面显示的文字，可改成站点名称或昵称'
+        - $formkit: text
+          name: powered_url
+          label: 页脚 Powered by 链接
+          value: "https://halo.run"
+          help: "点击上面文字跳转的地址，如站点主页"
+        - $formkit: text
+          name: theme_name
+          label: 页脚 Theme 文字
+          value: "Moesora"
+        - $formkit: text
+          name: theme_url
+          label: 页脚 Theme 链接
+          value: ""
+          help: "点击 Theme 文字跳转的地址，如 GitHub 主题源码页；留空则跳首页"
+        - $formkit: select
+          name: show_login
+          label: 页脚-显示登录入口
+          value: false
+          help: 开启后页脚出现「登录」链接，指向 Halo 后台登录页（若开放注册，登录页自带注册入口）
+          options:
+            - { label: "显示", value: true }
+            - { label: "隐藏", value: false }
+        - $formkit: text
+          name: login_url
+          label: 页脚-登录入口地址
+          value: "/console"
+          help: 默认 /console（未登录会自动跳到登录页）。如后台路径不同可改
+
+    - group: comment
+      label: 评论
+      formSchema:
+        - $formkit: select
+          name: comment_system
+          label: 评论系统
+          value: "moesora"
+          help: "「Moesora 内置评论」为主题自带，游客填昵称+QQ+手机号+邮箱即可评论，无需登录（需在 Halo 后台「评论设置」开启允许匿名/自定义账号评论）；Halo 原生评论功能全；Twikoo/Waline 的客户端脚本已内置，只需填各自的服务端（envId / serverURL）"
+          options:
+            - { label: "Moesora 内置评论", value: "moesora" }
+            - { label: "Halo 原生评论", value: "native" }
+            - { label: "Twikoo", value: "twikoo" }
+            - { label: "Waline", value: "waline" }
+            - { label: "不显示评论", value: "none" }
+        - $formkit: text
+          name: comment_upload_url
+          label: 评论图片上传接口（图床）
+          value: ""
+          help: "仅内置评论。填写后游客插入图片会上传到该接口(form-data)并取回直链插入评论，效果同参考站(![名](链接))；留空则图片压缩后内嵌发送。例：自建 EasyImage/Lsky 的上传地址"
+        - $formkit: text
+          name: comment_upload_field
+          label: 图床文件字段名
+          value: "file"
+          help: "上传时图片对应的表单字段名，多数图床为 file"
+        - $formkit: text
+          name: comment_upload_resp
+          label: 图床返回URL字段路径
+          value: "data.url"
+          help: "从图床 JSON 响应里取图片直链的路径，点号分隔，如 data.url；留空会自动尝试常见字段(url / data.url / data.links.url)"
+        - $formkit: text
+          name: comment_upload_header
+          label: 图床请求头（可选）
+          value: ""
+          help: "如需鉴权填一个请求头，形如 Authorization: Bearer 访问令牌"
+        - $formkit: text
+          name: twikoo_env_id
+          label: "Twikoo envId"
+          help: "Twikoo 的环境 ID（腾讯云环境 ID 或 Vercel/自托管地址；客户端脚本已内置，无需填脚本地址）"
+          value: ""
+        - $formkit: text
+          name: waline_server
+          label: "Waline 服务端地址"
+          value: ""
+          help: "Waline serverURL，如 https://your-waline.vercel.app（客户端脚本与样式已内置，无需再填地址）"
+
+    - group: custom
+      label: 定制
+      formSchema:
+        - $formkit: repeater
+          name: external_css
+          label: 外部 CSS 链接
+          help: 每条一个 CSS 文件地址（注入到 head）
+          value: []
+          children:
+            - $formkit: text
+              name: url
+              label: CSS 地址
+        - $formkit: textarea
+          name: inline_css
+          label: 内嵌 CSS
+          help: 直接写 CSS 代码（不用写 style 标签），注入到 head
+          value: ""
+        - $formkit: repeater
+          name: external_js_head
+          label: 外部 JS 链接（head）
+          help: 每条一个 JS 文件地址，注入到 head
+          value: []
+          children:
+            - $formkit: text
+              name: url
+              label: JS 地址
+        - $formkit: textarea
+          name: inline_js_head
+          label: 内嵌 JS（head）
+          help: 直接写 JS 代码（不用写 script 标签），注入到 head
+          value: ""
+        - $formkit: repeater
+          name: external_js_body
+          label: 外部 JS 链接（body 末尾）
+          help: 每条一个 JS 文件地址，注入到 body 末尾（推荐放这里，不阻塞渲染）
+          value: []
+          children:
+            - $formkit: text
+              name: url
+              label: JS 地址
+        - $formkit: textarea
+          name: inline_js_body
+          label: 内嵌 JS（body 末尾）
+          help: 直接写 JS 代码（不用写 script 标签），注入到 body 末尾
+          value: ""
+        - $formkit: select
+          name: baidu_push
+          label: 百度链接自动推送
+          value: false
+          help: "开启后每次打开页面自动把当前网址推送给百度（加快收录）。仅百度支持此 JS 方式"
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: text
+          name: cdn_base
+          label: 第三方库 CDN 前缀
+          value: "https://gcore.jsdelivr.net"
+          help: "代码高亮/公式/灯箱/音乐播放器等库的 CDN 前缀。jsdelivr 官方(cdn.jsdelivr.net)在国内常被墙，已默认改用镜像。若仍慢/失效可换：https://fastly.jsdelivr.net 、https://jsdelivr.b-cdn.net 、https://cdn.jsdelivr.net （路径需与 jsdelivr 一致，结尾不要加 /）"
+    - group: live2d
+      label: 看板娘
+      formSchema:
+        - $formkit: select
+          name: live2d_enable
+          label: 启用 Live2D 看板娘
+          value: false
+          help: "在页面角落显示一个可互动的 Live2D 角色。模型地址需自行提供（见下方），运行库走 CDN、不占主题体积"
+          options:
+            - { label: "开启", value: true }
+            - { label: "关闭", value: false }
+        - $formkit: select
+          name: live2d_position
+          label: 显示位置
+          value: "bottom-right"
+          options:
+            - { label: "右下角", value: "bottom-right" }
+            - { label: "左下角", value: "bottom-left" }
+        - $formkit: number
+          name: live2d_scale
+          label: 缩放比例
+          value: 1
+          help: "看板娘大小，1 为默认，可填 0.8 / 1.2 等"
+        - $formkit: textarea
+          name: live2d_models
+          label: 模型列表
+          value: |
+            八千代辉夜姬|https://gcore.jsdelivr.net/gh/7l4i8y1a4n3g8-7l4i8y1a4n3g8-1438-9748/Yachiyo@master/Yachiyo.model3.json
+          help: "每行一个角色，格式：名称|模型json地址（Cubism3/4 用 .model3.json，Cubism2 用 .model.json）。多个角色时会出现切换按钮。模型需放在支持跨域(CORS)的地方，推荐 GitHub + jsDelivr"
+    - group: wishes
+      label: 留言墙
+      formSchema:
+        - $formkit: text
+          name: wishes_subtitle
+          label: 留言墙-副标题
+          value: "写下你的心愿，留下你的故事"
+        - $formkit: text
+          name: wishes_categories
+          label: 留言墙-分类
+          help: "英文逗号分隔，如：心愿,树洞,反馈。访客发布时从中选择；第一项为默认分类"
+          value: "心愿,树洞,反馈"
+    - group: seo
+      label: SEO 优化
+      formSchema:
+        - $formkit: text
+          name: seo_base_url
+          label: 站点完整网址
+          help: "用于 canonical 和分享卡片的绝对链接，如 https://example.com（结尾不要加斜杠；留空则用相对链接，分享缩略图可能无法显示）"
+          value: ""
+        - $formkit: text
+          name: seo_description
+          label: 站点默认描述
+          help: "首页及没有摘要的页面所用的 description；留空则使用站点副标题"
+          value: ""
+        - $formkit: text
+          name: seo_keywords
+          label: 站点默认关键词
+          help: "英文逗号分隔。文章页会优先使用文章自身的标签作为关键词"
+          value: ""
+        - $formkit: text
+          name: seo_share_image
+          label: 默认分享图
+          help: "没有封面的页面分享到社交平台时显示的图片（完整网址或站内路径）；留空则用站点 Logo"
+          value: ""
+        - $formkit: text
+          name: seo_rss_url
+          label: RSS 订阅地址
+          help: "用于 <link rel=alternate> 订阅发现，默认 /rss.xml；请按实际启用的 RSS 插件地址填写"
+          value: "/rss.xml"
+        - $formkit: switch
+          name: seo_enable
+          label: 启用 SEO 标签
+          help: "总开关。若 SEO 标签导致页面异常，可在此关闭（标题仍会正常显示）"
+          value: true
+    - group: pwa
+      label: PWA（可安装 / 离线）
+      formSchema:
+        - $formkit: switch
+          name: pwa_enable
+          label: 启用 PWA
+          value: false
+          help: "开启后：① 主题静态资源会被缓存，重复访问更快、断网仍可用；② 站点可「添加到主屏幕」作为应用安装。需在下方填好图标才能被浏览器识别为可安装"
+        - $formkit: text
+          name: pwa_name
+          label: 应用名称
+          value: ""
+          help: "安装到主屏幕后显示的名称；留空则用站点标题"
+        - $formkit: text
+          name: pwa_theme_color
+          label: 应用主题色
+          value: "#f9a8d4"
+          help: "安装后应用的主题色（状态栏/启动背景）"
+        - $formkit: text
+          name: pwa_icon
+          label: 应用图标 192×192
+          value: ""
+          help: "PNG 图标的完整网址，建议正方形 192×192（用于安装图标与 iOS 添加到主屏幕）"
+        - $formkit: text
+          name: pwa_icon_large
+          label: 应用图标 512×512
+          value: ""
+          help: "PNG 图标的完整网址，建议正方形 512×512；留空则复用上面的图标"

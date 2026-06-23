@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(content, hero, isHome)">
+<head th:replace="~{modules/head :: head}"></head>
+<body>
+  <!-- 全站背景层（地址放 data-bg，由脚本赋给 background-image，最稳） -->
+  <div class="moe-site-bg"
+       th:if="${!#strings.isEmpty(theme.config.basic?.site_bg)}"
+       th:attr="data-bg=${theme.config.basic.site_bg},data-mode=${theme.config.basic?.site_bg_mode}"
+       th:style="${theme.config.basic?.site_bg_mode == 'not_home' and isHome == true} ? 'display:none' : ''"></div>
+
+  <!-- 少女祈祷中... 加载层 -->
+  <div id="moesora-loading"
+       th:text="${theme.config.loading?.loading_text} ?: '少女祈祷中...'">少女祈祷中...</div>
+
+  <!-- 顶部导航 -->
+  <div th:replace="~{modules/navbar :: navbar}"></div>
+
+  <!-- Pjax 进度条（无刷新切页时显示） -->
+  <div id="moe-pjax-bar" class="moe-pjax-bar"></div>
+
+  <!-- Pjax 切页时只替换这一块（大图 + 三列主体） -->
+  <div id="moe-pjax">
+  <!-- 通栏满宽大图（仅首页传入，其它页面为空） -->
+  <div th:replace="${hero}"></div>
+
+  <!-- 三列主体：左侧栏 / 正文 / 右侧栏（模块化布局：按后台配置的列表渲染，未配置则回退默认顺序） -->
+  <div class="moe-layout"
+       th:classappend="${(theme.config.basic?.sidebar_swap ? ' is-swapped' : '') + ' layout-' + (theme.config.basic?.sidebar_column ?: 'three')}">
+    <aside class="moe-sidebar moe-sidebar-left"
+           th:if="${(theme.config.basic?.sidebar_column ?: 'three') != 'right'}"
+           th:with="lm=${theme.config.sidebar?.left_modules}">
+      <th:block th:if="${lm != null and !#lists.isEmpty(lm)}" th:each="m : ${lm}">
+        <th:block th:replace="~{modules/widgets :: widget(${m.module})}"></th:block>
+      </th:block>
+      <th:block th:if="${lm == null or #lists.isEmpty(lm)}" th:each="k : ${ {'toc','profile','recent','tags'} }">
+        <th:block th:replace="~{modules/widgets :: widget(${k})}"></th:block>
+      </th:block>
+    </aside>
+    <main class="moe-main">
+      <div th:replace="${content}"></div>
+    </main>
+    <aside class="moe-sidebar moe-sidebar-right"
+           th:if="${(theme.config.basic?.sidebar_column ?: 'three') != 'left'}"
+           th:with="rm=${theme.config.sidebar?.right_modules}">
+      <th:block th:if="${rm != null and !#lists.isEmpty(rm)}" th:each="m : ${rm}">
+        <th:block th:replace="~{modules/widgets :: widget(${m.module})}"></th:block>
+      </th:block>
+      <th:block th:if="${rm == null or #lists.isEmpty(rm)}" th:each="k : ${ {'notice','love','music','about','links'} }">
+        <th:block th:replace="~{modules/widgets :: widget(${k})}"></th:block>
+      </th:block>
+    </aside>
+  </div>
+  </div><!-- /#moe-pjax -->
+
+  <!-- 全局悬浮音乐播放器：放在 #moe-pjax 外，Pjax 切页不中断播放；点 🎵 浮标弹出播放器 -->
+  <div class="moe-music-float" id="moe-music-float"
+       th:if="${(theme.config.sidebar?.music_enable ?: false) and (theme.config.sidebar?.music_float ?: false)}">
+    <div class="moe-music-float-body">
+      <meting-js server="netease" type="playlist"
+                 th:attr="id=${theme.config.sidebar?.netease_playlist_id}"
+                 fixed="false" mini="false" autoplay="false" order="list" preload="none"
+                 list-folded="true" list-max-height="200px"></meting-js>
+    </div>
+    <button class="moe-music-fab" id="moe-music-fab" type="button" aria-label="音乐播放器">
+      <svg class="moe-music-ring" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+        <circle class="moe-music-track" cx="24" cy="24" r="21"/>
+        <circle class="moe-music-prog" cx="24" cy="24" r="21"/>
+      </svg>
+      <svg class="moe-music-note" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+    </button>
+  </div>
+  <script>
+  (function(){
+    var f=document.getElementById("moe-music-float");
+    var b=document.getElementById("moe-music-fab");
+    if(!f||!b) return;
+    b.addEventListener("click",function(e){ e.stopPropagation(); f.classList.toggle("open"); });
+    /* 播放进度环：等 meting-js 生成 APlayer 后，按当前曲目进度更新环 */
+    var prog=b.querySelector(".moe-music-prog");
+    var C=131.95; /* 2 * PI * 21 */
+    function setP(p){ if(!prog) return; if(!(p>=0)) p=0; if(p>1) p=1; prog.style.strokeDashoffset=(C*(1-p)).toFixed(1); }
+    setP(0);
+    var tries=0, timer=setInterval(function(){
+      var mt=f.querySelector("meting-js");
+      var ap=mt && mt.aplayer;
+      if(ap && ap.audio){
+        clearInterval(timer);
+        var au=ap.audio;
+        var upd=function(){ var d=au.duration; setP(d&&isFinite(d)&&d>0 ? au.currentTime/d : 0); };
+        au.addEventListener("timeupdate",upd);
+        au.addEventListener("loadedmetadata",upd);
+        au.addEventListener("ended",function(){ setP(0); });
+        upd();
+      }
+      if(++tries>150) clearInterval(timer);
+    },200);
+  })();
+  </script>
+
+  <!-- 页脚 -->
+  <div th:replace="~{modules/footer :: footer}"></div>
+
+  <!-- 第三方库（高亮/公式/灯箱，按需 CDN 加载） -->
+  <div th:replace="~{modules/libs :: libs}"></div>
+
+  <!-- 回到顶部（带滚动进度环） -->
+  <button id="moe-totop" class="moe-totop" type="button" aria-label="回到顶部">
+    <svg class="moe-totop-ring" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+      <circle class="moe-totop-track" cx="24" cy="24" r="21"/>
+      <circle class="moe-totop-prog" cx="24" cy="24" r="21"/>
+    </svg>
+    <svg class="moe-totop-arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+  </button>
+  <script>
+  (function(){
+    function moeSiteBg(){
+      var sb=document.querySelector(".moe-site-bg");
+      if(!sb) return;
+      var bg=sb.getAttribute("data-bg");
+      if(bg && !sb.style.backgroundImage){ sb.style.backgroundImage="url('"+bg+"')"; }
+      var mode=sb.getAttribute("data-mode");
+      var isHome=!!document.getElementById("moe-home-flag");
+      sb.style.display=(mode==="not_home" && isHome) ? "none" : "";
+    }
+    moeSiteBg();
+    var btn=document.getElementById("moe-totop");
+    var prog=btn && btn.querySelector(".moe-totop-prog");
+    var music=document.getElementById("moe-music-float");
+    var nav=document.querySelector(".moe-navbar");
+    var C=131.95; /* 2 * PI * r(21) 进度环周长 */
+    function onScroll(){
+      var y=window.pageYOffset;
+      var max=document.documentElement.scrollHeight - window.innerHeight;
+      var p=max>0 ? Math.min(1, Math.max(0, y/max)) : 0;
+      if(btn){ if(y>300){btn.classList.add("show");}else{btn.classList.remove("show");} }
+      if(prog){ prog.style.strokeDashoffset=(C*(1-p)).toFixed(1); }
+      var nearBottom = max>0 && (max - y) < 150;   /* 接近底部：控件上浮避让页脚 */
+      if(btn){ btn.classList.toggle("near-bottom", nearBottom); }
+      if(music){ music.classList.toggle("near-bottom", nearBottom); }
+      var hero=document.querySelector(".moe-hero");   /* 每次重查：Pjax 切页后大图会变 */
+      if(nav&&hero){
+        var navH=nav.offsetHeight||60;
+        if(hero.getBoundingClientRect().bottom>navH+4){nav.classList.add("is-top");}
+        else{nav.classList.remove("is-top");}
+      } else if(nav){ nav.classList.remove("is-top"); }
+    }
+    window.addEventListener("scroll",onScroll,{passive:true});
+    window.addEventListener("resize",onScroll,{passive:true});
+    if(btn){ btn.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});}); }
+    onScroll();
+    window.MoesoraNavState=function(){ onScroll(); moeSiteBg(); };   /* 供 Pjax 切页后调用：刷新导航态 + 全站背景显隐 */
+
+    /* 页脚滚动揭示（pre-reveal 仅在脚本就绪后施加，万一脚本失效页脚仍正常显示） */
+    var f=document.querySelector(".moe-footer");
+    var reduce=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(f && !reduce && ("IntersectionObserver" in window)){
+      f.classList.add("moe-pre-reveal");
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ f.classList.add("is-revealed"); } });
+      },{threshold:0.12});
+      io.observe(f);
+    }
+  })();
+  </script>
+
+  <!-- 编译后的脚本（IIFE 普通脚本，用 defer 保证 DOM 就绪后执行；不用 type=module 以兼容各类手机浏览器） -->
+  <script defer th:src="@{/assets/dist/moesora.js(v=${theme.spec.version})}"></script>
+
+  <!-- 复制内容追加版权 -->
+  <script th:if="${!#strings.isEmpty(theme.config.post?.copy_explain)}" th:inline="javascript">
+  (function(){
+    var tpl = (/*[[${theme.config.post.copy_explain}]]*/ "");
+    document.addEventListener("copy", function(e){
+      var sel = (window.getSelection && window.getSelection().toString()) || "";
+      if(sel.length < 20) return;
+      var extra = "\n\n" + tpl.replace(/\{url\}/g, location.href);
+      try{ e.clipboardData.setData("text/plain", sel + extra); e.preventDefault(); }catch(err){}
+    });
+  })();
+  </script>
+
+  <!-- 自定义：外部 JS（body 末尾） -->
+  <script th:each="j : ${theme.config.custom?.external_js_body}" th:if="${!#strings.isEmpty(j?.url)}"
+          th:src="${j.url}"></script>
+  <!-- 自定义：内嵌 JS（body 末尾） -->
+  <script th:if="${!#strings.isEmpty(theme.config.custom?.inline_js_body)}"
+          th:utext="${theme.config.custom.inline_js_body}"></script>
+</body>
+</html>

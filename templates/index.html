@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{::hero}, isHome=true)}">
+<body>
+<th:block th:fragment="hero">
+
+  <!-- 签名头图：背景图(可选) / 默认樱花粉渐变 + 波浪底边 -->
+  <section class="moe-hero" th:if="${(theme.config.basic?.hero_enable) ?: true}"
+           th:with="heroBg=${theme.config.basic?.hero_bg},heroVideo=${theme.config.basic?.hero_video}"
+           th:classappend="${((!#strings.isEmpty(heroBg) or !#strings.isEmpty(heroVideo)) ? ' has-bg' : '') + (theme.config.basic?.hero_mode == 'fullscreen' ? ' is-fullscreen' : '')}"
+           th:style="${!#strings.isEmpty(heroBg)} ? 'background-image:url(' + ${heroBg} + ')' : ''">
+    <video th:if="${!#strings.isEmpty(heroVideo)}" class="moe-hero-video" data-no-player
+           autoplay muted loop playsinline preload="auto"
+           th:src="${heroVideo}" th:attr="poster=${heroBg}"></video>
+    <div class="moe-hero-text">
+      <h1 class="moe-hero-title" th:text="${!#strings.isEmpty(theme.config.basic?.name_hero) ? theme.config.basic.name_hero : (!#strings.isEmpty(theme.config.basic?.blog_name) ? theme.config.basic.blog_name : (site.title ?: 'Moesora'))}">Moesora</h1>
+      <p class="moe-hero-sub moe-typed" th:if="${!#strings.isEmpty(theme.config.basic?.signature)}">
+        <span class="moe-typed-prompt">&gt;</span>
+        <span class="moe-typed-text" id="moe-typed-text"></span>
+        <span class="moe-typed-caret">▋</span>
+      </p>
+      <p class="moe-hero-sub" th:unless="${!#strings.isEmpty(theme.config.basic?.signature)}"
+         th:text="${site.subtitle}">少女祈祷中...</p>
+    </div>
+    <svg class="moe-hero-wave" viewBox="0 24 150 28" preserveAspectRatio="none">
+      <defs>
+        <path id="moe-wave" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z"/>
+      </defs>
+      <use href="#moe-wave" x="48" y="0" class="moe-wave-1"/>
+      <use href="#moe-wave" x="48" y="3" class="moe-wave-2"/>
+      <use href="#moe-wave" x="48" y="6" class="moe-wave-3"/>
+    </svg>
+  </section>
+  <script th:if="${!#strings.isEmpty(theme.config.basic?.signature)}" th:inline="javascript">
+  (function(){
+    var raw = /*[[${theme.config.basic.signature}]]*/ "";
+    var phrases = raw.split("\n").map(function(s){return s.replace(/\r$/,"").trim();}).filter(Boolean);
+    var el = document.getElementById("moe-typed-text");
+    if(!el || !phrases.length) return;
+    var pi=0, ci=0, del=false;
+    function tick(){
+      if(!document.body.contains(el)) return;   /* Pjax 切页后旧元素已移除，自停 */
+      var w = phrases[pi];
+      if(!del){ ci++; el.textContent = w.slice(0,ci);
+        if(ci>=w.length){ del=true; return setTimeout(tick,1600); } }
+      else { ci--; el.textContent = w.slice(0,ci);
+        if(ci<=0){ del=false; pi=(pi+1)%phrases.length; return setTimeout(tick,400); } }
+      setTimeout(tick, del?55:115);
+    }
+    tick();
+  })();
+  </script>
+</th:block>
+
+<th:block th:fragment="content">
+  <span id="moe-home-flag" hidden></span>
+  <!-- 文章列表 -->
+  <div class="moe-post-list">
+    <th:block th:each="post : ${posts.items}">
+      <th:block th:replace="~{modules/post-card :: card(${post})}"></th:block>
+    </th:block>
+
+    <p th:if="${posts.items.isEmpty()}" class="moe-empty">
+      还没有文章，写一篇吧 (｡･ω･｡)
+    </p>
+  </div>
+
+  <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+</th:block>
+</body>
+</html>

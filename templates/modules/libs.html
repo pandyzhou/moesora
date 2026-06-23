@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="libs">
+
+  <!-- 代码高亮 highlight.js（本地内置，主题随设置；不依赖 CDN） -->
+  <th:block th:with="hlTheme=${theme.config.post?.code_pretty} ?: 'atom-one-dark'">
+    <link rel="stylesheet"
+          th:href="@{'/assets/lib/highlightjs/styles/' + ${hlTheme} + '.min.css'}"/>
+  </th:block>
+  <script defer th:src="@{/assets/lib/highlightjs/highlight.min.js}"></script>
+
+  <!-- KaTeX 公式（本地内置，按需） -->
+  <th:block th:if="${theme.config.post?.enable_katex} ?: false">
+    <link rel="stylesheet" th:href="@{/assets/lib/katex/katex.min.css}"/>
+    <script defer th:src="@{/assets/lib/katex/katex.min.js}"></script>
+    <script defer th:src="@{/assets/lib/katex/contrib/auto-render.min.js}"></script>
+  </th:block>
+
+  <!-- 图片灯箱已改为主题自带实现（见 moesora.js / MoesoraLightbox），无需第三方库 -->
+
+  <!-- Moesora 内置评论脚本（仅在选用内置评论时加载；自带防御，无 #moe-comment 容器时不动作） -->
+  <th:block th:if="${(theme.config.comment?.comment_system ?: 'moesora') == 'moesora' or moments != null}">
+    <script defer th:src="@{/assets/lib/moe-comment.js(v=${theme.spec.version})}"></script>
+  </th:block>
+
+  <!-- Moesora 视频播放器（接管正文 video；hls.js 由脚本按需本地加载，无 video 时不动作） -->
+  <script defer th:src="@{/assets/lib/moe-video.js(v=${theme.spec.version})}"></script>
+
+  <!-- Moesora 音频播放器（接管正文 audio；无 audio 时不动作） -->
+  <script defer th:src="@{/assets/lib/moe-audio.js(v=${theme.spec.version})}"></script>
+
+  <!-- Moesora 正文内容增强（时间线 / 彩色提示框 / 圆形头像） -->
+  <script defer th:src="@{/assets/lib/moe-content.js(v=${theme.spec.version})}"></script>
+
+  <!-- Moesora 相册分组标签 / 瞬间时间轴·点赞·评论（无对应容器时不动作） -->
+  <script defer th:src="@{/assets/lib/moe-feed.js(v=${theme.spec.version})}"></script>
+
+  <!-- Moesora 留言墙（仅 /wishes 自定义模板用到；无 #moe-wishes 时不动作） -->
+  <script defer th:src="@{/assets/lib/moe-wishes.js(v=${theme.spec.version})}"></script>
+  <!-- 音乐播放器 APlayer + MetingJS（本地内置，侧边栏音乐开启时） -->
+  <th:block th:if="${theme.config.sidebar?.music_enable} ?: false">
+    <link rel="stylesheet" th:href="@{/assets/lib/aplayer/APlayer.min.css}"/>
+    <script th:src="@{/assets/lib/aplayer/APlayer.min.js}"></script>
+    <script th:src="@{/assets/lib/meting/Meting.min.js}"></script>
+  </th:block>
+
+  <!-- 初始化（全部加防御性判断，库没加载或无正文都安全跳过） -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+      var katexOn = /*[[${theme.config.post?.enable_katex} ?: false]]*/ false;
+      var lightboxOn = /*[[${theme.config.post?.enable_lightbox} ?: true]]*/ true;
+
+      function init() {
+        var content = document.querySelector(".moe-post-content");
+        if (!content) return;
+
+        // 用探针读取 hljs 主题真实底色（不受正文 CSS 影响），统一套到代码块+行号区
+        function applyCodeTheme() {
+          var probe = document.createElement("code");
+          probe.className = "hljs"; probe.textContent = "x";
+          probe.style.cssText = "position:absolute;left:-9999px;top:-9999px;visibility:hidden";
+          document.body.appendChild(probe);
+          var bg = getComputedStyle(probe).backgroundColor;
+          if (probe.parentNode) probe.parentNode.removeChild(probe);
+          var valid = bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+          var light = false;
+          if (valid) {
+            var m = bg.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+            if (m) light = (0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3]) > 150;
+          }
+          content.querySelectorAll("pre.moe-code").forEach(function (pre) {
+            if (valid) {
+              pre.style.background = bg;
+              var ln = pre.querySelector(".moe-code-ln");
+              if (ln) ln.style.background = bg;
+              pre.classList.toggle("is-light", light);
+            }
+            var code = pre.querySelector("code");
+            // 强制基础（未着色）文字为高对比色，避免浅色主题下与底色接近看不清
+            if (code && valid) code.style.color = light ? "#383a42" : "#e6e6e6";
+            // 注：语言名只采用「显式标注 / 默认语言」（在重组时已确定），
+            // 不用 hljs 的自动猜测覆盖标签，避免把 bash 显示成 javascript 等错误结果
+          });
+        }
+        function runHl() {
+          content.querySelectorAll("pre code").forEach(function (b) {
+            try { window.hljs.highlightElement(b); } catch (e) {}
+          });
+          applyCodeTheme();
+        }
+        if (window.hljs) runHl();
+        else {
+          var tries = 0, t = setInterval(function () {
+            if (window.hljs) { clearInterval(t); runHl(); }
+            else if (++tries > 25) clearInterval(t);
+          }, 200);
+        }
+        if (katexOn && window.renderMathInElement) {
+          try {
+            window.renderMathInElement(content, {
+              delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+              ],
+              throwOnError: false
+            });
+          } catch (e) {}
+        }
+      }
+
+      // 暴露给 Pjax：切页后对新正文重新应用高亮/公式/灯箱
+      window.MoesoraLibsInit = init;
+
+      // 库用 defer 加载，等 load 事件后再初始化，确保 hljs/Fancybox 就绪
+      if (document.readyState === "complete") init();
+      else window.addEventListener("load", init);
+    })();
+    /*]]>*/
+  </script>
+  <!-- Live2D 看板娘（按需加载；运行库由脚本内部走 CDN） -->
+  <script th:if="${theme.config.live2d?.live2d_enable} ?: false" defer
+          th:src="@{/assets/lib/live2d/moe-live2d.js(v=${theme.spec.version})}"></script>
+  <!-- PWA：可安装 + 主题静态资源离线缓存（默认关闭，可在「PWA」设置开启） -->
+  <th:block th:if="${theme.config.pwa?.pwa_enable} ?: false">
+    <span id="moe-pwa-cfg" style="display:none" aria-hidden="true"
+          th:attr="data-sw=@{/assets/sw.js(v=${theme.spec.version})},
+                   data-name=${theme.config.pwa?.pwa_name} ?: ${site.title},
+                   data-color=${theme.config.pwa?.pwa_theme_color} ?: '#f9a8d4',
+                   data-icon=${theme.config.pwa?.pwa_icon},
+                   data-icon2=${theme.config.pwa?.pwa_icon_large}"></span>
+    <script>
+    (function () {
+      try {
+        var el = document.getElementById('moe-pwa-cfg');
+        if (!el) return;
+        var d = el.dataset, head = document.head;
+        var icons = [];
+        if (d.icon) icons.push({ src: d.icon, sizes: '192x192', type: 'image/png', purpose: 'any maskable' });
+        var big = d.icon2 || d.icon;
+        if (big) icons.push({ src: big, sizes: '512x512', type: 'image/png', purpose: 'any maskable' });
+        var manifest = {
+          name: d.name || 'Blog', short_name: d.name || 'Blog',
+          start_url: '/', scope: '/', display: 'standalone',
+          background_color: '#ffffff', theme_color: d.color || '#f9a8d4', icons: icons
+        };
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+        head.appendChild(link);
+        if (d.icon) {
+          var al = document.createElement('link'); al.rel = 'apple-touch-icon'; al.href = d.icon; head.appendChild(al);
+          var m1 = document.createElement('meta'); m1.name = 'apple-mobile-web-app-capable'; m1.content = 'yes'; head.appendChild(m1);
+          var m2 = document.createElement('meta'); m2.name = 'apple-mobile-web-app-title'; m2.content = d.name || 'Blog'; head.appendChild(m2);
+        }
+        if ('serviceWorker' in navigator && d.sw) {
+          window.addEventListener('load', function () { navigator.serviceWorker.register(d.sw).catch(function () {}); });
+        }
+      } catch (e) {}
+    })();
+    </script>
+  </th:block>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  侧栏模块分发器：按 key 渲染对应卡片。
+  在 layout 中通过 left_modules / right_modules 配置列表迭代调用，实现「模块化布局」。
+-->
+<th:block th:fragment="widget(key)" th:switch="${key}">
+
+  <!-- 文章目录 TOC：默认隐藏，文章页有标题时由脚本填充并显示 -->
+  <section th:case="'toc'" id="moe-toc-card" class="moe-card moe-toc" hidden>
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('list')}"></th:block></span>目录</h4>
+    <nav id="moe-toc" class="moe-toc-nav"></nav>
+  </section>
+
+  <!-- 个人信息卡 -->
+  <section th:case="'profile'" class="moe-card moe-profile"
+           th:with="postTotal=${postFinder.list(1,1).total},
+                    catTotal=${categoryFinder.list(1,1).total},
+                    tagTotal=${tagFinder.list(1,1).total}">
+    <img class="moe-profile-avatar"
+         th:src="${site.logo} ?: @{/assets/dist/logo.svg}" alt="avatar"/>
+    <h3 class="moe-profile-name" th:text="${!#strings.isEmpty(theme.config.basic?.name_profile) ? theme.config.basic.name_profile : (!#strings.isEmpty(theme.config.basic?.blog_name) ? theme.config.basic.blog_name : (site.title ?: 'Moesora'))}">Moesora</h3>
+    <p class="moe-profile-bio" id="moe-profile-bio"
+       th:text="${!#strings.isEmpty(theme.config.sidebar?.profile_signature) ? theme.config.sidebar.profile_signature : site.subtitle}">少女祈祷中...</p>
+    <p class="moe-profile-loc" th:if="${!#strings.isEmpty(theme.config.sidebar?.profile_location)}">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span th:text="${theme.config.sidebar.profile_location}">位置</span>
+    </p>
+    <div class="moe-profile-stats">
+      <a class="moe-stat" th:href="@{/archives}">
+        <span class="moe-stat-num" th:text="${postTotal}">0</span><span class="moe-stat-label">文章</span>
+      </a>
+      <a class="moe-stat" th:href="@{/categories}">
+        <span class="moe-stat-num" th:text="${catTotal}">0</span><span class="moe-stat-label">分类</span>
+      </a>
+      <a class="moe-stat" th:href="@{/tags}">
+        <span class="moe-stat-num" th:text="${tagTotal}">0</span><span class="moe-stat-label">标签</span>
+      </a>
+    </div>
+    <div class="moe-profile-social"
+         th:if="${theme.config.sidebar?.social_links != null and !#lists.isEmpty(theme.config.sidebar.social_links)}">
+      <a th:each="s : ${theme.config.sidebar.social_links}"
+         class="moe-social-link" th:classappend="'is-' + (${s.platform} ?: 'link')"
+         th:href="${s.url}" th:title="${s.name}" target="_blank" rel="noopener">
+        <th:block th:replace="~{modules/icons :: social(${s.platform})}"></th:block>
+      </a>
+    </div>
+    <script th:inline="javascript">
+    (function(){
+      var text = (/*[[${!#strings.isEmpty(theme.config.sidebar?.profile_signature) ? theme.config.sidebar.profile_signature : site.subtitle}]]*/ "").trim();
+      var el = document.getElementById("moe-profile-bio");
+      if(!el || !text) return;
+      el.textContent = "";
+      var span = document.createElement("span");
+      var caret = document.createElement("span");
+      caret.className = "moe-bio-caret"; caret.textContent = "▋";
+      el.appendChild(span); el.appendChild(caret);
+      var i = 0, dir = 1;
+      function tick(){
+        if(!document.body.contains(el)) return;   /* Pjax 切页后旧元素已移除，自停 */
+        span.textContent = text.slice(0, i);
+        if(dir > 0){
+          if(i < text.length){ i++; setTimeout(tick, 140); }
+          else { dir = -1; setTimeout(tick, 1800); }
+        } else {
+          if(i > 0){ i--; setTimeout(tick, 60); }
+          else { dir = 1; setTimeout(tick, 500); }
+        }
+      }
+      tick();
+    })();
+    </script>
+  </section>
+
+  <!-- 公告 -->
+  <section th:case="'notice'" class="moe-card">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('megaphone')}"></th:block></span>公告</h4>
+    <p class="moe-card-body" th:utext="${!#strings.isEmpty(theme.config.sidebar?.notice_content) ? theme.config.sidebar.notice_content : '欢迎来到 Moesora ~ ♪'}">欢迎来到 Moesora ~ ♪</p>
+  </section>
+
+  <!-- 恋爱墙 -->
+  <section th:case="'love'" class="moe-card moe-love" th:if="${theme.config.sidebar?.love_enable} ?: false">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('hearts')}"></th:block></span>在一起</h4>
+    <div class="moe-love-avatars">
+      <a th:href="${theme.config.sidebar?.love_oneself_url} ?: '#'" target="_blank" rel="noopener">
+        <img th:src="${theme.config.sidebar?.love_oneself_avatar} ?: @{/assets/dist/logo.svg}" alt="TA"/>
+      </a>
+      <span class="moe-love-heart">❤</span>
+      <a th:href="${theme.config.sidebar?.love_opposite_url} ?: '#'" target="_blank" rel="noopener">
+        <img th:src="${theme.config.sidebar?.love_opposite_avatar} ?: @{/assets/dist/logo.svg}" alt="我"/>
+      </a>
+    </div>
+    <div class="moe-love-time" id="moe-love-time"
+         th:attr="data-start=${theme.config.sidebar?.love_time}">永远在一起</div>
+  </section>
+
+  <!-- 音乐播放器（侧栏模式：仅在未开启"悬浮"时显示） -->
+  <section th:case="'music'" class="moe-card moe-music-card"
+           th:if="${(theme.config.sidebar?.music_enable ?: false) and !(theme.config.sidebar?.music_float ?: false)}">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('music')}"></th:block></span>音乐</h4>
+    <meting-js server="netease" type="playlist"
+               th:attr="id=${theme.config.sidebar?.netease_playlist_id}"
+               fixed="false" mini="false" autoplay="false" order="list" preload="none"
+               list-folded="true" list-max-height="180px"></meting-js>
+  </section>
+
+  <!-- 关于 -->
+  <section th:case="'about'" class="moe-card">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('heart')}"></th:block></span>关于</h4>
+    <p class="moe-card-body" th:utext="${!#strings.isEmpty(theme.config.sidebar?.about_content) ? theme.config.sidebar.about_content : '一个二次元风格的 Halo 主题，正在一步步长大。'}">一个二次元风格的 Halo 主题，正在一步步长大。</p>
+  </section>
+
+  <!-- 友链 -->
+  <section th:case="'links'" class="moe-card" th:if="${pluginFinder.available('PluginLinks')}"
+           th:with="linkGroups=${linkFinder.groupBy()}">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('link')}"></th:block></span>友链</h4>
+    <div class="moe-friend-list">
+      <th:block th:each="group : ${linkGroups}">
+        <a th:each="link : ${group.links}" class="moe-friend-item"
+           th:href="${link.spec.url}" target="_blank" rel="noopener"
+           th:title="${link.spec.description}"
+           th:with="raw=${#strings.replace(#strings.replace(link.spec.url,'https://',''),'http://','')}">
+          <span class="moe-friend-name" th:text="${link.spec.displayName}">友链</span>
+          <span class="moe-friend-host" th:text="${#strings.contains(raw,'/') ? #strings.substringBefore(raw,'/') : raw}">domain</span>
+        </a>
+      </th:block>
+    </div>
+  </section>
+
+  <!-- 最近文章 -->
+  <section th:case="'recent'" class="moe-card"
+           th:with="recent=${postFinder.list(1, (theme.config.sidebar?.recent_posts_count ?: 5))}">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('edit')}"></th:block></span>最近文章</h4>
+    <ul class="moe-recent">
+      <li th:each="p : ${recent.items}">
+        <a th:href="${p.status.permalink}" th:text="${p.spec.title}">标题</a>
+      </li>
+      <li th:if="${recent.items.isEmpty()}" class="moe-muted-text">还没有文章</li>
+    </ul>
+  </section>
+
+  <!-- 分类 -->
+  <th:block th:case="'categories'" th:with="catTree=${categoryFinder.listAsTree()}">
+    <section class="moe-card moe-cat-card" th:if="${catTree != null and !catTree.isEmpty()}">
+      <div class="moe-cat-head">
+        <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('folder')}"></th:block></span>分类</h4>
+        <a class="moe-cat-more" th:href="@{/categories}">更多 »</a>
+      </div>
+      <ul class="moe-cat-list">
+        <li th:each="cat : ${catTree}">
+          <a th:href="${cat.status.permalink}">
+            <span class="moe-cat-name" th:text="${cat.spec.displayName}">分类</span>
+            <span class="moe-cat-count" th:text="${cat.status?.postCount} ?: 0">0</span>
+          </a>
+          <ul class="moe-cat-sub" th:if="${cat.children != null and !cat.children.isEmpty()}">
+            <li th:each="sub : ${cat.children}">
+              <a th:href="${sub.status.permalink}">
+                <span class="moe-cat-name" th:text="${sub.spec.displayName}">子分类</span>
+                <span class="moe-cat-count" th:text="${sub.status?.postCount} ?: 0">0</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+  </th:block>
+
+  <!-- 标签云 -->
+  <th:block th:case="'tags'" th:with="allTags=${tagFinder.listAll()}">
+    <section class="moe-card" th:if="${allTags != null and !allTags.isEmpty()}">
+      <div class="moe-cat-head">
+        <h4 class="moe-card-title"><span class="moe-title-ico"><th:block th:replace="~{modules/icons :: icon('tag')}"></th:block></span>标签</h4>
+        <a class="moe-cat-more" th:href="@{/tags}">更多 »</a>
+      </div>
+      <div class="moe-tag-cloud">
+        <a th:each="tag : ${allTags}" class="moe-chip"
+           th:href="${tag.status.permalink}"
+           th:style="${tag.spec.color != null and tag.spec.color != '#ffffff'} ? '--moe-c:' + ${tag.spec.color} : ''"
+           th:text="'# ' + ${tag.spec.displayName}">标签</a>
+      </div>
+    </section>
+  </th:block>
+
+  <!-- 时间天气：当前天气(大字置顶) + 实时时钟(小字置底)。Open-Meteo 免key；城市留空则按访客IP尽力定位 -->
+  <section th:case="'weather'" class="moe-card moe-weather"
+           th:attr="data-city=${theme.config.sidebar?.weather_city}">
+    <h4 class="moe-card-title"><span class="moe-title-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>时间天气</h4>
+    <div class="moe-weather-main">
+      <span class="moe-weather-icon" data-role="icon"></span>
+      <div class="moe-weather-info">
+        <div class="moe-weather-temp" data-role="temp">--°</div>
+        <div class="moe-weather-sub">
+          <span data-role="cond">获取中…</span>
+          <span class="moe-weather-loc"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span data-role="city">--</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="moe-weather-timerow">
+      <span class="moe-weather-time" data-role="time">--:--:--</span>
+      <span class="moe-weather-date" data-role="date">----</span>
+    </div>
+    <script>
+    (function(){
+      var me = document.currentScript;
+      var root = (me && me.closest && me.closest(".moe-weather")) || document.getElementById("moe-weather");
+      if(!root) return;
+      var elT=root.querySelector('[data-role="time"]'), elD=root.querySelector('[data-role="date"]');
+      var elIcon=root.querySelector('[data-role="icon"]'), elTemp=root.querySelector('[data-role="temp"]');
+      var elCond=root.querySelector('[data-role="cond"]'), elCity=root.querySelector('[data-role="city"]');
+      var WK=["日","一","二","三","四","五","六"];
+      function pad(n){ return n<10?"0"+n:""+n; }
+      if(root.__moeWxTimer){ clearInterval(root.__moeWxTimer); }
+      function tickClock(){
+        if(!document.body.contains(root)){ if(root.__moeWxTimer) clearInterval(root.__moeWxTimer); return; }
+        var d=new Date();
+        if(elT) elT.textContent=pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+        if(elD) elD.textContent=(d.getMonth()+1)+"月"+d.getDate()+"日 周"+WK[d.getDay()];
+      }
+      tickClock(); root.__moeWxTimer=setInterval(tickClock,1000);
+      function wmo(c){ c=+c;
+        if(c===0) return ["晴","sun"];
+        if(c===1) return ["晴间多云","cloudsun"];
+        if(c===2) return ["多云","cloudsun"];
+        if(c===3) return ["阴","cloud"];
+        if(c===45||c===48) return ["雾","fog"];
+        if(c>=51&&c<=57) return ["毛毛雨","rain"];
+        if(c>=61&&c<=67) return ["雨","rain"];
+        if(c>=71&&c<=77) return ["雪","snow"];
+        if(c>=80&&c<=82) return ["阵雨","rain"];
+        if(c===85||c===86) return ["阵雪","snow"];
+        if(c===95) return ["雷阵雨","thunder"];
+        if(c>=96) return ["雷雨冰雹","thunder"];
+        return ["多云","cloud"];
+      }
+      function icon(g,day){
+        var s='<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">',e='</svg>';
+        if(g==="sun") return day
+          ? s+'<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/>'+e
+          : s+'<path d="M21 12.8A8 8 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8z"/>'+e;
+        if(g==="cloudsun") return s+'<circle cx="8" cy="8" r="3"/><path d="M8 1.6v1.4M1.6 8h1.4M3.4 3.4l1 1M12.6 3.4l-1 1"/><path d="M17.5 19a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.6 1.3A3.3 3.3 0 0 0 8 19z"/>'+e;
+        if(g==="cloud") return s+'<path d="M17.5 19a3.5 3.5 0 0 0 0-7 5.5 5.5 0 0 0-10.6 1.4A3.5 3.5 0 0 0 7 19z"/>'+e;
+        if(g==="rain") return s+'<path d="M16 13a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.3A3.3 3.3 0 0 0 7 13z"/><path d="M8 16l-1 3M12 16l-1 3M16 16l-1 3"/>'+e;
+        if(g==="snow") return s+'<path d="M16 12a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.3A3.3 3.3 0 0 0 7 12z"/><path d="M8 16h.01M12 18h.01M16 16h.01M10 20h.01M14 20h.01"/>'+e;
+        if(g==="fog") return s+'<path d="M4 9h14M6 13h12M5 17h12"/>'+e;
+        if(g==="thunder") return s+'<path d="M17 13a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.3A3.3 3.3 0 0 0 7.5 13"/><path d="M12 11l-2 4h3l-2 4"/>'+e;
+        return s+'<path d="M17.5 19a3.5 3.5 0 0 0 0-7 5.5 5.5 0 0 0-10.6 1.4A3.5 3.5 0 0 0 7 19z"/>'+e;
+      }
+      function render(name,code,temp,day){
+        var w=wmo(code);
+        if(elIcon) elIcon.innerHTML=icon(w[1],day);
+        if(elTemp) elTemp.textContent=Math.round(temp)+"°";
+        if(elCond) elCond.textContent=w[0];
+        if(elCity) elCity.textContent=name||"未知";
+        root.classList.remove("is-fail");
+      }
+      function fail(msg){
+        root.classList.add("is-fail");
+        if(elIcon) elIcon.innerHTML=icon("cloud",true);
+        if(elTemp) elTemp.textContent="--°";
+        if(elCond) elCond.textContent=msg||"天气获取失败";
+        if(elCity) elCity.textContent=(root.getAttribute("data-city")||"").trim()||"";
+      }
+      var cache=window.__moeWeatherCache;
+      if(cache && (Date.now()-cache.t<1800000)){ render(cache.name,cache.code,cache.temp,cache.day); return; }
+      function fetchWx(lat,lon,name){
+        fetch("https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&current=temperature_2m,weather_code,is_day&timezone=auto")
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            var c=j&&j.current; if(!c) return fail();
+            window.__moeWeatherCache={ t:Date.now(),name:name,code:c.weather_code,temp:c.temperature_2m,day:(c.is_day!==0) };
+            render(name,c.weather_code,c.temperature_2m,c.is_day!==0);
+          }).catch(function(){ fail(); });
+      }
+      var city=(root.getAttribute("data-city")||"").trim();
+      if(city){
+        fetch("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(city)+"&count=1&language=zh&format=json")
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            var g=j&&j.results&&j.results[0];
+            if(!g) return fail("未找到该城市");
+            fetchWx(g.latitude,g.longitude,g.name||city);
+          }).catch(function(){ fail(); });
+      } else {
+        function resolveZh(enName,lat,lon){
+          if(!enName){ fetchWx(lat,lon,"本地"); return; }
+          fetch("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(enName)+"&count=1&language=zh&format=json")
+            .then(function(r){ return r.json(); })
+            .then(function(j){ var g=j&&j.results&&j.results[0]; fetchWx(lat,lon,(g&&g.name)||enName); })
+            .catch(function(){ fetchWx(lat,lon,enName); });
+        }
+        function ipFallback(){
+          fetch("https://ipwho.is/")
+            .then(function(r){ return r.json(); })
+            .then(function(j){
+              if(!j||!j.success||j.latitude==null) return fail("定位失败，请在设置填城市");
+              resolveZh(j.city||j.region||"",j.latitude,j.longitude);
+            }).catch(function(){ fail("定位失败，请在设置填城市"); });
+        }
+        fetch("https://api.ip.sb/geoip")
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            if(!j||j.latitude==null) return ipFallback();
+            resolveZh(j.city||j.region||"",j.latitude,j.longitude);
+          }).catch(ipFallback);
+      }
+    })();
+    </script>
+  </section>
+
+  <!-- 未知 key：不渲染 -->
+  <th:block th:case="*"></th:block>
+
+</th:block>
+</body>
+</html>

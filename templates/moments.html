@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content"
+          th:with="palette=${ {'#f9a8d4','#a5d8ff','#b2f2bb','#ffd8a8','#d0bfff','#ffc9c9','#99e9f2','#ffec99','#eebefa','#c0eb75'} }">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('chat')}"></th:block></span><span>瞬间</span></h1>
+  </div>
+
+  <div class="moe-card moe-moment-wrap" th:if="${moments != null and !#lists.isEmpty(moments.items)}">
+    <div class="moe-timeline">
+      <article th:each="moment,ms : ${moments.items}" class="moe-tl-item"
+               th:style="'--tl-c:' + ${palette[ms.index % palette.size()]}">
+        <span class="moe-tl-dot" aria-hidden="true"></span>
+        <div class="moe-tl-card">
+          <time class="moe-tl-time" th:if="${moment.spec.releaseTime != null}"
+                th:attr="datetime=${moment.spec.releaseTime}" th:text="${moment.spec.releaseTime}"></time>
+
+          <div class="moe-moment-body" th:utext="${moment.spec.content.html}">内容</div>
+
+          <div class="moe-moment-media"
+               th:if="${moment.spec.content.medium != null and !moment.spec.content.medium.isEmpty()}">
+            <th:block th:each="m : ${moment.spec.content.medium}">
+              <img class="moe-lb-photo" th:if="${m.type.name() == 'PHOTO'}" th:src="${m.url}" loading="lazy" alt="img"/>
+              <video th:if="${m.type.name() == 'VIDEO'}" th:src="${m.url}" controls preload="metadata"></video>
+            </th:block>
+          </div>
+
+          <div class="moe-moment-foot">
+            <button type="button" class="moe-mo-act moe-mo-like"
+                    th:attr="data-name=${moment.metadata.name}">
+              <th:block th:replace="~{modules/icons :: icon('heart')}"></th:block>
+              <span class="moe-mo-n" th:text="${moment.stats != null ? moment.stats.upvote : 0}">0</span>
+            </button>
+            <button type="button" class="moe-mo-act moe-mo-cmt-toggle"
+                    th:attr="data-name=${moment.metadata.name}">
+              <th:block th:replace="~{modules/icons :: icon('comment')}"></th:block>
+              <span class="moe-mo-n" th:text="${moment.stats != null ? moment.stats.totalComment : 0}">0</span>
+            </button>
+          </div>
+
+          <div class="moe-mo-comments" hidden>
+            <div class="moe-comment"
+                 th:attr="data-name=${moment.metadata.name},data-kind='Moment',data-group='moment.halo.run'"></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="moe-card" th:if="${moments == null or #lists.isEmpty(moments.items)}">
+    <p class="moe-empty">还没有瞬间 (｡･ω･｡)</p>
+  </div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="moe-footer">
+  <div class="moe-footer-inner">
+    <p class="moe-footer-site">
+      © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2026</span>
+      <span th:text="${site.title} ?: 'Moesora'">Moesora</span>
+    </p>
+
+    <p class="moe-footer-since" th:if="${theme.config.footer?.since != null and theme.config.footer?.since != ''}">
+      <span class="moe-since-ico"><th:block th:replace="~{modules/icons :: icon('sparkle')}"></th:block></span> 已建站 <span id="moe-run-since">…</span>
+    </p>
+
+    <p class="moe-footer-beian"
+       th:if="${(theme.config.footer?.icp != null and theme.config.footer?.icp != '')
+                or (theme.config.footer?.police_text != null and theme.config.footer?.police_text != '')}">
+      <a th:if="${theme.config.footer?.icp != null and theme.config.footer?.icp != ''}"
+         href="https://beian.miit.gov.cn/" target="_blank" rel="noopener"
+         th:text="${theme.config.footer.icp}">ICP备XXXXXXXX号</a>
+      <a th:if="${theme.config.footer?.police_text != null and theme.config.footer?.police_text != ''}"
+         class="moe-footer-police" target="_blank" rel="noopener"
+         th:href="'https://beian.mps.gov.cn/#/query/webSearch?code=' + ${theme.config.footer?.police_code}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/></svg>
+        <span th:text="${theme.config.footer.police_text}">公网安备XXXXXXXX号</span>
+      </a>
+    </p>
+
+    <p class="moe-footer-powered"
+       th:with="pName=${!#strings.isEmpty(theme.config.footer?.powered_name) ? theme.config.footer.powered_name : 'Halo'},
+                pUrl=${!#strings.isEmpty(theme.config.footer?.powered_url) ? theme.config.footer.powered_url : 'https://halo.run'},
+                tName=${!#strings.isEmpty(theme.config.footer?.theme_name) ? theme.config.footer.theme_name : 'Moesora'},
+                tUrl=${!#strings.isEmpty(theme.config.footer?.theme_url) ? theme.config.footer.theme_url : '/'}">
+      Powered by <a th:href="${pUrl}" target="_blank" rel="noopener" th:text="${pName}">Halo</a>
+      · Theme <a th:href="${tUrl}" target="_blank" rel="noopener" th:text="${tName}">Moesora</a>
+      <th:block th:if="${theme.config.footer?.show_login}">
+        · <a class="moe-footer-login" th:href="${theme.config.footer?.login_url} ?: '/console'">登录</a>
+      </th:block>
+    </p>
+  </div>
+  <script th:if="${theme.config.footer?.since != null and theme.config.footer?.since != ''}" th:inline="javascript">
+  (function(){
+    var since = new Date((/*[[${theme.config.footer.since}]]*/ "").replace(/-/g,"/"));
+    var el = document.getElementById("moe-run-since");
+    if(!el || isNaN(since.getTime())) return;
+    function upd(){
+      var s = Math.max(0, Math.floor((Date.now()-since.getTime())/1000));
+      var d = Math.floor(s/86400); s -= d*86400;
+      var h = Math.floor(s/3600);  s -= h*3600;
+      var m = Math.floor(s/60);    s -= m*60;
+      el.textContent = d+" 天 "+h+" 时 "+m+" 分 "+s+" 秒";
+    }
+    upd(); setInterval(upd, 1000);
+  })();
+  </script>
+</footer>
+</body>
+</html>

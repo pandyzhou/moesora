@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('link')}"></th:block></span><span>友情链接</span></h1>
+  </div>
+
+  <th:block th:each="group : ${groups}">
+    <div class="moe-card moe-link-group">
+      <h3 class="moe-card-title" th:text="${group.spec.displayName}">分组</h3>
+      <div class="moe-link-list">
+        <a th:each="link : ${group.links}" class="moe-link-item"
+           th:href="${link.spec.url}" target="_blank" rel="noopener">
+          <img class="moe-link-logo"
+               th:if="${!#strings.isEmpty(link.spec.logo)}"
+               th:src="${link.spec.logo}"
+               th:alt="${link.spec.displayName}"/>
+          <div class="moe-link-meta">
+            <div class="moe-link-name" th:text="${link.spec.displayName}">站点</div>
+            <div class="moe-link-desc" th:text="${link.spec.description}">描述</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </th:block>
+
+  <div th:if="${groups == null or #lists.isEmpty(groups)}" class="moe-card moe-empty">
+    还没有友链 (｡･ω･｡)
+  </div>
+</th:block>
+</body>
+</html>

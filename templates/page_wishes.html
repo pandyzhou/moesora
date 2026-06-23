@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" xmlns:halo="https://halo.run"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+
+  <section class="moe-wish-header"
+           th:with="sub=${theme.config.wishes?.wishes_subtitle} ?: '写下你的心愿，留下你的故事'">
+    <h1 class="moe-wish-title" th:text="${singlePage.spec.title} ?: '留言墙'">留言墙</h1>
+    <p class="moe-wish-sub" th:text="${sub}">写下你的心愿，留下你的故事</p>
+  </section>
+
+  <!-- 正文（可选：在后台单页正文里写的内容会显示在墙上方） -->
+  <div class="moe-wish-intro moe-post-content"
+       th:if="${singlePage.content != null and !#strings.isEmpty(singlePage.content.content)}"
+       th:utext="${singlePage.content.content}"></div>
+
+  <!-- 留言墙主体：以 Halo 评论(kind=SinglePage)为存储 -->
+  <section id="moe-wishes"
+           th:attr="data-name=${singlePage.metadata.name},
+                    data-cats=${theme.config.wishes?.wishes_categories} ?: '心愿,树洞,反馈'"></section>
+
+</th:block>
+</body>
+</html>

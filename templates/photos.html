@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content"
+          th:with="palette=${ {'#f9a8d4','#a5d8ff','#b2f2bb','#ffd8a8','#d0bfff','#ffc9c9','#99e9f2','#ffec99','#eebefa','#c0eb75'} }">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('image')}"></th:block></span><span>相册</span></h1>
+  </div>
+
+  <div class="moe-card moe-photo-wrap"
+       th:if="${(photos != null and !#lists.isEmpty(photos.items)) or (groups != null and !#lists.isEmpty(groups))}">
+
+    <!-- 彩色分组标签：点击切换分组面板 -->
+    <div class="moe-photo-tabs" th:if="${groups != null and !#lists.isEmpty(groups)}">
+      <button type="button" class="moe-photo-tab is-active" data-target="all">全部</button>
+      <button type="button" th:each="group,gs : ${groups}" class="moe-photo-tab"
+              th:attr="data-target=${group.metadata.name}"
+              th:style="'--tab-c:' + ${palette[gs.index % palette.size()]}"
+              th:text="${group.spec.displayName}">分组</button>
+    </div>
+
+    <!-- 全部 -->
+    <div class="moe-photo-panel is-active" data-panel="all">
+      <div class="moe-photo-grid">
+        <figure th:each="photo : ${photos.items}" class="moe-photo">
+          <img class="moe-lb-photo" th:src="${photo.spec.url}" th:alt="${photo.spec.displayName}" loading="lazy"/>
+          <figcaption th:if="${photo.spec.displayName}" th:text="${photo.spec.displayName}"></figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- 各分组 -->
+    <div th:each="group : ${groups}" class="moe-photo-panel" th:attr="data-panel=${group.metadata.name}">
+      <div class="moe-photo-grid">
+        <figure th:each="photo : ${group.photos}" class="moe-photo">
+          <img class="moe-lb-photo" th:src="${photo.spec.url}" th:alt="${photo.spec.displayName}" loading="lazy"/>
+          <figcaption th:if="${photo.spec.displayName}" th:text="${photo.spec.displayName}"></figcaption>
+        </figure>
+        <p th:if="${group.photos == null or #lists.isEmpty(group.photos)}" class="moe-empty">这个分组还没有图片 (｡･ω･｡)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="moe-card" th:if="${(photos == null or #lists.isEmpty(photos.items)) and (groups == null or #lists.isEmpty(groups))}">
+    <p class="moe-empty">相册还是空的 (｡･ω･｡)</p>
+  </div>
+</th:block>
+</body>
+</html>

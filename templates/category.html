@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{modules/layout :: layout(content=~{::content}, hero=~{}, isHome=false)}">
+<body>
+<th:block th:fragment="content">
+  <div class="moe-page-head moe-card">
+    <h1 class="moe-page-title"><span class="moe-page-title-icon"><th:block th:replace="~{modules/icons :: icon('folder')}"></th:block></span><span th:text="${category.spec.displayName}">分类</span></h1>
+    <p class="moe-page-sub" th:if="${category.spec.description}" th:text="${category.spec.description}"></p>
+  </div>
+  <div class="moe-post-list">
+    <th:block th:each="post : ${posts.items}">
+      <th:block th:replace="~{modules/post-card :: card(${post})}"></th:block>
+    </th:block>
+    <p th:if="${posts.items.isEmpty()}" class="moe-empty">这个分类还没有文章 (｡･ω･｡)</p>
+  </div>
+  <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="pagination(data)" th:if="${data != null and data.totalPages > 1}" class="moe-pagination">
+  <a th:if="${data.hasPrevious()}" class="moe-page-btn" th:href="${data.prevUrl}">← 上一页</a>
+  <span th:unless="${data.hasPrevious()}" class="moe-page-btn is-disabled">← 上一页</span>
+
+  <span class="moe-page-info" th:text="${data.page} + ' / ' + ${data.totalPages}">1 / 1</span>
+
+  <a th:if="${data.hasNext()}" class="moe-page-btn" th:href="${data.nextUrl}">下一页 →</a>
+  <span th:unless="${data.hasNext()}" class="moe-page-btn is-disabled">下一页 →</span>
+</nav>
+</body>
+</html>

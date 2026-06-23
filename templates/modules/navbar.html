@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="navbar" class="moe-navbar">
+  <div class="moe-navbar-inner">
+    <a class="moe-brand" th:href="@{/}">
+      <img class="moe-brand-logo" th:src="${site.logo} ?: @{/assets/dist/logo.svg}" alt="logo"/>
+      <span class="moe-brand-title" th:text="${!#strings.isEmpty(theme.config.basic?.name_navbar) ? theme.config.basic.name_navbar : (!#strings.isEmpty(theme.config.basic?.blog_name) ? theme.config.basic.blog_name : (site.title ?: 'Moesora'))}">Moesora</span>
+    </a>
+
+    <nav class="moe-nav" th:with="primary=${menuFinder.getPrimary()}">
+      <!-- 有主菜单则渲染菜单项，否则回退为「首页」。图标按菜单名关键字匹配，风格与全站统一。 -->
+      <th:block th:if="${primary != null and primary.menuItems != null and !primary.menuItems.isEmpty()}">
+        <a th:each="item : ${primary.menuItems}" class="moe-nav-link"
+           th:href="${item.status.href}"
+           th:with="nm=${item.status.displayName},
+                    ikey=${((#strings.contains(nm,'首页') or #strings.contains(nm,'主页') or #strings.containsIgnoreCase(nm,'home')) ? 'home' : ((#strings.contains(nm,'归档') or #strings.containsIgnoreCase(nm,'archive')) ? 'archive' : ((#strings.contains(nm,'分类') or #strings.containsIgnoreCase(nm,'categor')) ? 'folder' : ((#strings.contains(nm,'标签') or #strings.containsIgnoreCase(nm,'tag')) ? 'tag' : ((#strings.contains(nm,'说说') or #strings.contains(nm,'动态') or #strings.contains(nm,'瞬间') or #strings.containsIgnoreCase(nm,'moment')) ? 'chat' : ((#strings.contains(nm,'相册') or #strings.contains(nm,'图库') or #strings.containsIgnoreCase(nm,'photo') or #strings.containsIgnoreCase(nm,'gallery')) ? 'image' : ((#strings.contains(nm,'留言') or #strings.contains(nm,'联系') or #strings.containsIgnoreCase(nm,'message') or #strings.containsIgnoreCase(nm,'contact')) ? 'mail' : ((#strings.contains(nm,'友链') or #strings.contains(nm,'链接') or #strings.containsIgnoreCase(nm,'link') or #strings.containsIgnoreCase(nm,'friend')) ? 'link' : ((#strings.contains(nm,'关于') or #strings.containsIgnoreCase(nm,'about')) ? 'heart' : 'sparkle')))))))))}">
+          <span class="moe-nav-ico"><th:block th:replace="~{modules/icons :: icon(${ikey})}"></th:block></span>
+          <span class="moe-nav-text" th:text="${nm}">菜单</span>
+        </a>
+      </th:block>
+      <a th:unless="${primary != null and primary.menuItems != null and !primary.menuItems.isEmpty()}"
+         class="moe-nav-link" th:href="@{/}">
+        <span class="moe-nav-ico"><th:block th:replace="~{modules/icons :: icon('home')}"></th:block></span>
+        <span class="moe-nav-text">首页</span>
+      </a>
+    </nav>
+
+    <div class="moe-search" id="moe-search">
+      <span class="moe-search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+        </svg>
+      </span>
+      <input class="moe-search-input" id="moe-search-input" type="search"
+             placeholder="搜索文章…" autocomplete="off" aria-label="搜索文章"/>
+      <div class="moe-search-panel" id="moe-search-panel" hidden></div>
+    </div>
+    <script th:inline="javascript">
+    (function () {
+      var POSTS = [];
+      /*[# th:each="p : ${postFinder.list(1, 500).items}"]*/
+      POSTS.push({ t: /*[[${p.spec.title}]]*/ "", u: /*[[${p.status.permalink}]]*/ "" });
+      /*[/]*/
+      var box = document.getElementById("moe-search");
+      var input = document.getElementById("moe-search-input");
+      var panel = document.getElementById("moe-search-panel");
+      if (!box || !input || !panel) return;
+      function esc(s){return (s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+      function hits(kw){return POSTS.filter(function(p){return (p.t||"").toLowerCase().indexOf(kw)>-1;});}
+      function render(){
+        var kw=input.value.trim().toLowerCase();
+        if(!kw){panel.hidden=true;panel.innerHTML="";return;}
+        var list=hits(kw).slice(0,8);
+        if(!list.length){panel.innerHTML='<div class="moe-search-empty">没有匹配的文章</div>';panel.hidden=false;return;}
+        panel.innerHTML=list.map(function(p){return '<a class="moe-search-item" href="'+p.u+'">'+esc(p.t)+'</a>';}).join("");
+        panel.hidden=false;
+      }
+      input.addEventListener("input",render);
+      input.addEventListener("keydown",function(e){
+        if(e.key==="Enter"){var h=hits(input.value.trim().toLowerCase())[0];if(h)location.href=h.u;}
+      });
+      box.addEventListener("click",function(){input.focus();});
+      document.addEventListener("click",function(e){if(!box.contains(e.target)){panel.hidden=true;}});
+    })();
+    </script>
+
+    <button id="moe-theme-toggle" class="moe-icon-btn" type="button" aria-label="切换明暗模式">
+      <svg class="moe-icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>
+      </svg>
+      <svg class="moe-icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+
+    <!-- 移动端汉堡菜单按钮（窄屏显示） -->
+    <button id="moe-nav-toggle" class="moe-nav-toggle" type="button" aria-label="菜单" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <script>
+  (function(){
+    var t=document.getElementById("moe-nav-toggle");
+    var bar=document.querySelector(".moe-navbar");
+    if(!t||!bar) return;
+    function close(){ bar.classList.remove("nav-open"); t.setAttribute("aria-expanded","false"); }
+    t.addEventListener("click",function(e){
+      e.stopPropagation();
+      var open=bar.classList.toggle("nav-open");
+      t.setAttribute("aria-expanded", open?"true":"false");
+    });
+    bar.querySelectorAll(".moe-nav-link").forEach(function(a){ a.addEventListener("click",close); });
+    document.addEventListener("click",function(e){ if(bar.classList.contains("nav-open") && !bar.contains(e.target)) close(); });
+  })();
+  </script>
+</header>
+</body>
+</html>

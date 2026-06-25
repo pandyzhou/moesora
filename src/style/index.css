@@ -103,7 +103,8 @@ html.dark .moe-icon-moon{display:block}
 .moe-post-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--moe-muted)}
 .moe-meta-item{display:inline-flex;align-items:center;gap:4px}
 .moe-meta-item svg{opacity:.85}
-.moe-post-cat{margin-left:auto;color:var(--moe-theme);background:var(--moe-bg-2);padding:3px 12px;border-radius:999px;font-size:12px}
+.moe-post-cat{color:var(--moe-theme);background:var(--moe-bg-2);padding:3px 12px;border-radius:999px;font-size:12px}
+.moe-post-cat:first-of-type{margin-left:auto}
 .moe-post-cat:hover{background:var(--moe-theme);color:#fff;text-decoration:none}
 .moe-post-content{margin-top:16px}
 .moe-empty{text-align:center;color:var(--moe-muted);padding:40px 0}

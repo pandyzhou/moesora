@@ -62,7 +62,10 @@
           '<textarea class="moe-wish-ta" maxlength="200" rows="1" placeholder="写下你想说的话…"></textarea>' +
           '<span class="moe-wish-count">0/200</span>' +
           '<span class="moe-wish-colors">' + COLORS.map(function (c, i) { return '<button type="button" class="moe-wish-color moe-wish-c-' + c + (i === 0 ? " is-on" : "") + '" data-c="' + c + '" title="' + c + '"></button>'; }).join("") + '</span>' +
-          '<select class="moe-wish-catsel">' + cats.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("") + '</select>' +
+          '<div class="moe-wish-catdd">' +
+            '<button type="button" class="moe-wish-catbtn" aria-haspopup="listbox" aria-expanded="false"><span class="moe-wish-catval">' + esc(defaultCat) + '</span><svg class="moe-wish-catarrow" viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 2 6 6.2 10.5 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+            '<ul class="moe-wish-catmenu" role="listbox">' + cats.map(function (c, i) { return '<li class="moe-wish-catopt' + (i === 0 ? ' is-on' : '') + '" role="option" data-v="' + esc(c) + '">' + esc(c) + '</li>'; }).join("") + '</ul>' +
+          '</div>' +
           '<button type="button" class="moe-wish-send">发布</button>' +
         '</div>' +
       '</div>';
@@ -71,7 +74,8 @@
     var moreWrap = root.querySelector(".moe-wish-more"), moreBtn = root.querySelector(".moe-wish-more-btn");
     var nickEl = root.querySelector(".moe-wish-nick"), mailEl = root.querySelector(".moe-wish-mail");
     var taEl = root.querySelector(".moe-wish-ta"), countEl = root.querySelector(".moe-wish-count");
-    var sendBtn = root.querySelector(".moe-wish-send"), catSel = root.querySelector(".moe-wish-catsel");
+    var sendBtn = root.querySelector(".moe-wish-send");
+    var catDd = root.querySelector(".moe-wish-catdd"), catBtn = root.querySelector(".moe-wish-catbtn"), catVal = root.querySelector(".moe-wish-catval");
 
     function toast(msg, ok) {
       var t = root.querySelector(".moe-wish-toast");
@@ -173,7 +177,37 @@
     root.querySelectorAll(".moe-wish-color").forEach(function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); root.querySelectorAll(".moe-wish-color").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); chosenColor = b.dataset.c; });
     });
-    catSel.addEventListener("change", function () { chosenCat = catSel.value; });
+    catBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = catDd.classList.toggle("is-open");
+      if (open) {
+        // 自动判断弹出方向：下方空间不足则朝上
+        var menu = catDd.querySelector(".moe-wish-catmenu");
+        var btnRect = catBtn.getBoundingClientRect();
+        var need = menu ? menu.offsetHeight : 180;
+        var below = window.innerHeight - btnRect.bottom;
+        var dropUp = below < need + 12 && btnRect.top > below;
+        catDd.classList.toggle("is-up", dropUp);
+      }
+      catBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    catDd.querySelectorAll(".moe-wish-catopt").forEach(function (li) {
+      li.addEventListener("click", function (e) {
+        e.stopPropagation();
+        catDd.querySelectorAll(".moe-wish-catopt").forEach(function (x) { x.classList.remove("is-on"); });
+        li.classList.add("is-on");
+        chosenCat = li.dataset.v;
+        catVal.textContent = li.textContent;
+        catDd.classList.remove("is-open");
+        catBtn.setAttribute("aria-expanded", "false");
+      });
+    });
+    document.addEventListener("click", function (e) {
+      if (!catDd.contains(e.target)) { catDd.classList.remove("is-open"); catBtn.setAttribute("aria-expanded", "false"); }
+    }, true);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { catDd.classList.remove("is-open"); catBtn.setAttribute("aria-expanded", "false"); }
+    });
     taEl.addEventListener("input", function () { countEl.textContent = taEl.value.length + "/200"; taEl.style.height = "auto"; taEl.style.height = Math.min(taEl.scrollHeight, 120) + "px"; });
     root.querySelector(".moe-wish-form").addEventListener("click", function (e) { e.stopPropagation(); });
 

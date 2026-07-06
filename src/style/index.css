@@ -24,7 +24,7 @@ a:hover{filter:brightness(.92);text-decoration:underline}
 img{max-width:100%}
 
 /* 顶部导航 */
-.moe-navbar{position:sticky;top:0;z-index:900;height:var(--moe-nav-h);
+.moe-navbar{position:sticky;top:0;z-index:1100;height:var(--moe-nav-h);
   background:color-mix(in srgb,var(--moe-card) 86%,transparent);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--moe-border)}
 .moe-navbar-inner{max-width:1200px;margin:0 auto;height:100%;padding:0 18px;
@@ -534,7 +534,7 @@ html.dark .moe-site-bg::after{background:rgba(0,0,0,.5)}
 #moe-pjax{flex:1 0 auto;display:flex;flex-direction:column;min-width:0;width:100%}
 
 /* 全局悬浮音乐播放器（自定义容器 + 浮标，避开 APlayer fixed 模式的渲染问题） */
-.moe-music-float{position:fixed;left:18px;bottom:18px;z-index:1500}
+.moe-music-float{position:fixed;left:18px;bottom:18px;z-index:950}
 .moe-music-float-body{position:absolute;left:0;bottom:58px;width:300px;max-width:calc(100vw - 36px);
   border-radius:14px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.22);
   opacity:0;visibility:hidden;transform:translateY(10px) scale(.96);transform-origin:bottom left;

@@ -503,15 +503,111 @@ do ->
 
     window.__moeTextDiagramMermaidPromise
 
+  resolveColor = (value, fallback) ->
+    return fallback unless document.body
+    probe = document.createElement('span')
+    probe.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden;color:' + fallback
+    document.body.appendChild probe
+    probe.style.color = value
+    resolved = getComputedStyle(probe).color
+    probe.remove()
+    resolved or fallback
+
+  themeVar = (styles, name, fallback) ->
+    raw = (styles.getPropertyValue(name) or '').trim()
+    resolveColor (if raw then raw else fallback), fallback
+
+  buildMermaidConfig = ->
+    rootStyle = getComputedStyle document.documentElement
+    bodyStyle = if document.body then getComputedStyle(document.body) else null
+    dark = document.documentElement.classList.contains('dark')
+    theme = themeVar rootStyle, '--moe-theme', '#f9a8d4'
+    text = themeVar rootStyle, '--moe-text', if dark then '#ece8f0' else '#3a3340'
+    card = themeVar rootStyle, '--moe-card', if dark then '#2a2533' else '#ffffff'
+    bg = themeVar rootStyle, '--moe-bg', if dark then '#18151f' else '#fff7fb'
+    bg2 = themeVar rootStyle, '--moe-bg-2', if dark then '#221d2c' else '#fff1f7'
+    border = themeVar rootStyle, '--moe-border', theme
+    muted = themeVar rootStyle, '--moe-muted', if dark then '#9a90a8' else '#9a8fa6'
+    danger = '#fb7185'
+    font = if bodyStyle and bodyStyle.fontFamily then bodyStyle.fontFamily else '"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif'
+    startOnLoad: false
+    theme: 'base'
+    themeVariables:
+      background: bg
+      primaryColor: card
+      primaryBorderColor: theme
+      primaryTextColor: text
+      secondaryColor: bg2
+      secondaryBorderColor: border
+      secondaryTextColor: text
+      tertiaryColor: bg
+      tertiaryBorderColor: border
+      tertiaryTextColor: text
+      mainBkg: card
+      nodeBkg: card
+      nodeBorder: theme
+      nodeTextColor: text
+      clusterBkg: bg2
+      clusterBorder: border
+      titleColor: text
+      edgeLabelBackground: card
+      lineColor: theme
+      defaultLinkColor: theme
+      textColor: text
+      fontFamily: font
+      noteBkgColor: bg2
+      noteBorderColor: border
+      noteTextColor: text
+      actorBkg: card
+      actorBorder: theme
+      actorTextColor: text
+      actorLineColor: theme
+      signalColor: text
+      signalTextColor: text
+      labelBoxBkgColor: bg2
+      labelBoxBorderColor: border
+      labelTextColor: text
+      loopTextColor: text
+      activationBkgColor: bg2
+      activationBorderColor: theme
+      sequenceNumberColor: text
+      sectionBkgColor: bg2
+      altSectionBkgColor: card
+      sectionBkgColor2: bg
+      taskBkgColor: card
+      taskBorderColor: border
+      taskTextColor: text
+      taskTextOutsideColor: text
+      taskTextClickableColor: theme
+      activeTaskBkgColor: bg2
+      activeTaskBorderColor: theme
+      gridColor: border
+      doneTaskBkgColor: bg2
+      doneTaskBorderColor: muted
+      critBkgColor: bg2
+      critBorderColor: danger
+      todayLineColor: theme
+      personBkg: card
+      personBorder: theme
+      labelBackgroundColor: bg2
+      stateBkg: card
+      stateBorder: theme
+      stateLabelColor: text
+      classText: text
+      requirementBackground: card
+      requirementBorderColor: theme
+      requirementTextColor: text
+      relationColor: theme
+      relationLabelBackground: card
+      relationLabelColor: text
+
   run = (reset = false) ->
     return unless hasDiagram()
     prepareDiagrams reset
     waitForMermaid().then(->
       return unless window.mermaid
       try
-        window.mermaid.initialize
-          startOnLoad: false
-          theme: if document.documentElement.classList.contains('dark') then 'dark' else 'default'
+        window.mermaid.initialize buildMermaidConfig()
         result = window.mermaid.run
           querySelector: SELECTOR
         if result and typeof result.catch == 'function'

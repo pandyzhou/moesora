@@ -400,44 +400,59 @@ window.MoesoraLightbox = do ->
 # ---- plugin-text-diagram 兼容：依赖插件提供 Mermaid，主题只同步暗色状态并在 PJAX 后重跑渲染 ----
 do ->
   SELECTOR = 'text-diagram[data-type="mermaid"]'
+  MERMAID_SRC = '/plugins/text-diagram/assets/static/mermaid.min.js'
 
   hasDiagram = ->
     !!document.querySelector SELECTOR
 
-  waitForMermaid = (done) ->
-    if window.mermaid
-      done()
-      return
-    scripts = document.querySelectorAll 'script[src*="/plugins/text-diagram/assets/static/mermaid.min.js"]'
-    if !scripts.length
-      return
-    if window.__moeTextDiagramMermaidPromise
-      window.__moeTextDiagramMermaidPromise.then(done).catch ->
-      return
+  waitForMermaid = ->
+    return Promise.resolve() if window.mermaid
+    return window.__moeTextDiagramMermaidPromise if window.__moeTextDiagramMermaidPromise
+
     window.__moeTextDiagramMermaidPromise = new Promise (resolve, reject) ->
       settled = false
+      timer = null
+      timeout = null
+
       finish = ->
-        return if settled
+        return if settled or !window.mermaid
         settled = true
+        clearInterval timer if timer
+        clearTimeout timeout if timeout
         resolve()
         return
+
       fail = ->
         return if settled
         settled = true
+        clearInterval timer if timer
+        clearTimeout timeout if timeout
         reject()
         return
+
+      scripts = document.querySelectorAll 'script[src*="/plugins/text-diagram/assets/static/mermaid.min.js"]'
+      if !scripts.length
+        script = document.createElement('script')
+        script.defer = true
+        script.src = MERMAID_SRC
+        script.setAttribute 'data-moe-text-diagram', 'mermaid'
+        document.head.appendChild script
+        scripts = [script]
+
       Array::forEach.call scripts, (s) ->
         s.addEventListener 'load', finish, once: true
         s.addEventListener 'error', fail, once: true
         return
-      setTimeout finish, 3000
+
+      timer = setInterval finish, 100
+      timeout = setTimeout fail, 12000
       return
-    window.__moeTextDiagramMermaidPromise.then(done).catch ->
-    return
+
+    window.__moeTextDiagramMermaidPromise
 
   run = ->
     return unless hasDiagram()
-    waitForMermaid ->
+    waitForMermaid().then(->
       return unless window.mermaid
       try
         window.mermaid.initialize
@@ -449,6 +464,7 @@ do ->
           result.catch ->
       catch e
       return
+    ).catch ->
     return
 
   window.MoesoraTextDiagramInit = run
@@ -459,6 +475,29 @@ do ->
   return
 
 window.MoesoraInitPage = ->
+  # 首页文章卡片摘要：移除文本绘图代码，避免 Mermaid 源码出现在列表卡片里
+  do ->
+    diagramStart = /(?:^|[\s。！？；：:—\-–,，])((?:graph|flowchart)\s+(?:TB|TD|BT|RL|LR)|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie\s+title|mindmap|timeline|gitGraph|quadrantChart|requirementDiagram|C4Context)\b/i
+
+    cleanExcerpt = (txt) ->
+      return '' unless txt
+      s = String(txt).replace(/\s+/g, ' ').trim()
+      m = diagramStart.exec s
+      if m
+        s = s.slice(0, m.index).replace(/[\s:：,，;；\-–—]+$/, '').trim()
+      s
+
+    document.querySelectorAll('.moe-post-excerpt').forEach (el) ->
+      return if el.dataset.moeExcerptClean
+      el.dataset.moeExcerptClean = '1'
+      txt = cleanExcerpt el.textContent
+      if txt
+        el.textContent = txt
+      else
+        el.hidden = true
+      return
+    return
+
   # 文章字数统计 / 预计阅读时长
   do ->
     content = document.querySelector('.moe-post-content')

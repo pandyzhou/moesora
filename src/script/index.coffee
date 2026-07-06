@@ -14,6 +14,12 @@ do ->
   applyDark = (dark) ->
     root.classList.toggle 'dark', dark
     root.setAttribute 'data-color-scheme', if dark then 'dark' else 'light'
+    try
+      document.dispatchEvent new CustomEvent('moesora:theme-change', detail: dark: dark)
+    catch e
+      ev = document.createEvent('CustomEvent')
+      ev.initCustomEvent 'moesora:theme-change', false, false, dark: dark
+      document.dispatchEvent ev
     return
 
   readSaved = ->
@@ -86,6 +92,38 @@ do ->
   console.log '%c Moesora %c 少女祈祷中... ', 'background:#f9a8d4;color:#fff;padding:2px 6px;border-radius:4px 0 0 4px', 'background:#333;color:#fff;padding:2px 6px;border-radius:0 4px 4px 0'
   return
 # ---- 自包含图片灯箱（零依赖，不走任何 CDN；支持双击放大/拖动/长图滚动）----
+# ---- 导航栏无感退出：Halo 对 JSON Accept 的 POST /logout 返回 204，主题随后回到首页 ----
+do ->
+  document.addEventListener 'submit', (e) ->
+    form = e.target
+    return unless form and form.matches and form.matches('.moe-user-logout-form')
+    return unless window.fetch and window.FormData and window.URLSearchParams
+    e.preventDefault()
+    btn = form.querySelector('button[type="submit"]')
+    btn.disabled = true if btn
+    redirect = form.getAttribute('data-redirect') or '/'
+    body = new URLSearchParams(new FormData(form))
+    fetch(form.action,
+      method: 'POST'
+      credentials: 'same-origin'
+      headers:
+        'Accept': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        'X-Requested-With': 'XMLHttpRequest'
+      body: body
+    ).then((r) ->
+      if !r.ok
+        throw new Error('logout failed')
+      window.location.replace redirect
+      return
+    ).catch ->
+      if btn
+        btn.disabled = false
+      form.submit()
+      return
+    return
+  return
+
 window.MoesoraLightbox = do ->
   ov = undefined
   imgEl = undefined
@@ -397,13 +435,28 @@ window.MoesoraLightbox = do ->
     close: close
   }
 
-# ---- plugin-text-diagram 兼容：依赖插件提供 Mermaid，主题只同步暗色状态并在 PJAX 后重跑渲染 ----
+# ---- plugin-text-diagram 兼容：依赖插件提供 Mermaid，主题随明暗状态重渲染并在 PJAX 后重跑 ----
 do ->
   SELECTOR = 'text-diagram[data-type="mermaid"]'
   MERMAID_SRC = '/plugins/text-diagram/assets/static/mermaid.min.js'
+  rerenderTimer = null
+
+  getDiagrams = ->
+    document.querySelectorAll SELECTOR
 
   hasDiagram = ->
     !!document.querySelector SELECTOR
+
+  prepareDiagrams = (reset) ->
+    nodes = getDiagrams()
+    Array::forEach.call nodes, (el) ->
+      if !el.dataset.moeMermaidSource
+        el.dataset.moeMermaidSource = (el.textContent or '').trim()
+      if reset and el.dataset.moeMermaidSource
+        el.textContent = el.dataset.moeMermaidSource
+        el.removeAttribute 'data-processed'
+      return
+    nodes
 
   waitForMermaid = ->
     return Promise.resolve() if window.mermaid
@@ -450,8 +503,9 @@ do ->
 
     window.__moeTextDiagramMermaidPromise
 
-  run = ->
+  run = (reset = false) ->
     return unless hasDiagram()
+    prepareDiagrams reset
     waitForMermaid().then(->
       return unless window.mermaid
       try
@@ -467,6 +521,18 @@ do ->
     ).catch ->
     return
 
+  rerender = ->
+    clearTimeout rerenderTimer if rerenderTimer
+    rerenderTimer = setTimeout (->
+      rerenderTimer = null
+      run true
+      return
+    ), 0
+    return
+
+  # 主题脚本执行时内容已解析到当前位置，先缓存源码；否则插件自己的 DOMContentLoaded 渲染会把源码替换成 SVG。
+  prepareDiagrams false
+  document.addEventListener 'moesora:theme-change', rerender
   window.MoesoraTextDiagramInit = run
   if document.readyState == 'complete'
     setTimeout run, 0

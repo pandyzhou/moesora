@@ -1631,3 +1631,34 @@ do ->
     show a.href, (a.target == '_blank')
     return
   return
+
+# ===== 底部悬浮控件避让页脚（根据页脚高度自动上移、停靠在页脚内侧） =====
+do ->
+  fabs = [].slice.call(document.querySelectorAll('.moe-music-float, .moe-totop, .moe-l2d-fab'))
+  return if fabs.length == 0
+  INSET = 15
+  bases = fabs.map (el) -> parseFloat(getComputedStyle(el).bottom) or 0
+  ticking = false
+  apply = ->
+    ticking = false
+    footer = document.querySelector('.moe-footer')
+    return unless footer
+    footerTop = window.innerHeight - footer.getBoundingClientRect().top
+    for el, i in fabs
+      h = el.offsetHeight or 46
+      el.style.bottom = Math.max(bases[i], footerTop - INSET - h) + 'px'
+    return
+  onScroll = ->
+    return if ticking
+    ticking = true
+    window.requestAnimationFrame apply
+    return
+  onResize = ->
+    (el.style.bottom = '' for el in fabs)
+    bases = fabs.map (el) -> parseFloat(getComputedStyle(el).bottom) or 0
+    apply()
+    return
+  window.addEventListener 'scroll', onScroll, passive: true
+  window.addEventListener 'resize', onResize, passive: true
+  apply()
+  return

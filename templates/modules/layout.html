@@ -126,7 +126,6 @@
     moeSiteBg();
     var btn=document.getElementById("moe-totop");
     var prog=btn && btn.querySelector(".moe-totop-prog");
-    var music=document.getElementById("moe-music-float");
     var nav=document.querySelector(".moe-navbar");
     var C=131.95; /* 2 * PI * r(21) 进度环周长 */
     function onScroll(){
@@ -135,9 +134,6 @@
       var p=max>0 ? Math.min(1, Math.max(0, y/max)) : 0;
       if(btn){ if(y>300){btn.classList.add("show");}else{btn.classList.remove("show");} }
       if(prog){ prog.style.strokeDashoffset=(C*(1-p)).toFixed(1); }
-      var nearBottom = max>0 && (max - y) < 150;   /* 接近底部：控件上浮避让页脚 */
-      if(btn){ btn.classList.toggle("near-bottom", nearBottom); }
-      if(music){ music.classList.toggle("near-bottom", nearBottom); }
       var hero=document.querySelector(".moe-hero");   /* 每次重查：Pjax 切页后大图会变 */
       if(nav&&hero){
         var navH=nav.offsetHeight||60;

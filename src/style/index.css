@@ -758,7 +758,7 @@ html.moe-no-anim .moe-article-hero:hover .moe-article-title::after{width:42px}
 
 /* 悬浮图标对齐：音乐浮标与回顶按钮同尺寸、同边距 */
 .moe-music-float{left:24px;bottom:24px}
-@media(max-width:680px){.moe-music-float{left:16px;bottom:16px}.moe-music-fab{width:42px;height:42px;font-size:18px}}
+@media(max-width:680px){.moe-music-float{display:none!important}.moe-music-fab{width:42px;height:42px;font-size:18px}}
 
 /* 头像悬停旋转一圈 */
 .moe-profile-avatar{transition:transform .9s cubic-bezier(.34,1.25,.5,1)}
@@ -797,7 +797,7 @@ html.moe-no-anim .moe-article-hero:hover .moe-article-title::after{width:42px}
 .moe-brand:hover .moe-brand-title{color:var(--moe-theme)}
 .moe-profile-avatar{transition:transform 2.1s cubic-bezier(.37,0,.63,1),box-shadow .4s ease;will-change:transform;transform:rotate(0deg)}
 .moe-profile-avatar:hover{transform:rotate(360deg);box-shadow:0 0 0 3px var(--moe-bg),0 8px 24px color-mix(in srgb,var(--moe-theme) 50%,transparent)}
-.moe-totop{width:48px;height:48px;transition:opacity .3s ease,transform .3s ease,visibility .3s ease,box-shadow .3s ease,bottom .4s cubic-bezier(.34,1.4,.5,1)}
+.moe-totop{width:48px;height:48px;transition:opacity .3s ease,transform .3s ease,visibility .3s ease,box-shadow .3s ease}
 .moe-totop-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}
 .moe-totop-track{fill:none;stroke:rgba(255,255,255,.32);stroke-width:3}
 .moe-totop-prog{fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-dasharray:131.95;stroke-dashoffset:131.95;transition:stroke-dashoffset .15s linear}
@@ -805,9 +805,7 @@ html.moe-no-anim .moe-article-hero:hover .moe-article-title::after{width:42px}
 .moe-totop.show:hover{transform:translateY(-3px);box-shadow:0 12px 28px color-mix(in srgb,var(--moe-theme) 60%,transparent)}
 .moe-totop.show:hover .moe-totop-arrow{transform:translateY(-3px)}
 .moe-totop.show:active{transform:translateY(-1px) scale(.93)}
-.moe-totop.near-bottom{bottom:96px}
-.moe-music-float{transition:bottom .4s cubic-bezier(.34,1.4,.5,1)}
-.moe-music-float.near-bottom{bottom:96px}
+.moe-music-float{transition:none}
 .moe-music-fab{width:48px;height:48px;transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease}
 .moe-music-fab svg{width:20px;height:20px}
 .moe-music-fab .moe-music-note{position:relative;z-index:1;width:20px;height:20px}
@@ -974,12 +972,11 @@ html.dark .moe-cmt-tool:hover{background:#3a2f3a}
 .moe-l2d-right .moe-l2d-bubble::after{content:"";position:absolute;bottom:-7px;right:32px;left:auto;border:7px solid transparent;border-top-color:var(--moe-card)}
 .moe-l2d-left .moe-l2d-bubble::after{content:"";position:absolute;bottom:-7px;left:32px;right:auto;border:7px solid transparent;border-top-color:var(--moe-card)}
 @keyframes moeL2dPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.moe-l2d-fab{position:fixed;bottom:24px;z-index:9990;width:46px;height:46px;border:none;border-radius:50%;background:var(--moe-theme);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--moe-theme) 40%,transparent);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .2s ease,bottom .4s cubic-bezier(.34,1.4,.5,1)}
+.moe-l2d-fab{position:fixed;bottom:24px;z-index:9990;width:46px;height:46px;border:none;border-radius:50%;background:var(--moe-theme);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--moe-theme) 40%,transparent);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .2s ease}
 .moe-l2d-fab:hover{transform:scale(1.08)}
 .moe-l2d-fab svg{display:block;margin-top:1px}
 .moe-l2d-fab.moe-l2d-right{right:80px}
 .moe-l2d-fab.moe-l2d-left{left:80px}
-.moe-l2d-fab.near-bottom{bottom:96px}
 .moe-l2d-fab[hidden]{display:none}
 @media (max-width:768px){
   .moe-l2d,.moe-l2d-fab{display:none!important}
